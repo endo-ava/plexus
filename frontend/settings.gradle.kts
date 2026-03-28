@@ -14,7 +14,7 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "egograph"
+rootProject.name = "plexus"
 
 include(":shared")
 include(":androidApp")

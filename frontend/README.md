@@ -1,16 +1,16 @@
-# EgoGraph Android App (KMP)
+# Plexus Android Terminal App
 
-**Kotlin Multiplatform + Compose Multiplatform** のネイティブ Android チャットアプリケーション。
+**Kotlin Multiplatform + Compose Multiplatform** のネイティブ Android ターミナルクライアントです。
 
 ## 概要
 
-EgoGraph エージェントと対話するための ChatGPT ライクなインターフェースです。
-React + Capacitor から Kotlin Multiplatform に移行し、ネイティブ Android 体験を提供します。
+Plexus Gateway に接続して tmux terminal へアクセスするための Android アプリです。
+EgoGraph から分離される runtime / terminal surface のモバイル UI を担います。
 
 - **Native Android**: Compose Multiplatform によるネイティブ UI
 - **MVVM**: 状態管理
-- **SSE Streaming**: リアルタイムチャット応答
-- **Offline First**: ローカルストレージとキャッシング
+- **Terminal Access**: セッション一覧、接続、snapshot、特殊キー入力
+- **Push-ready**: runtime 通知との統合を前提にした構成
 
 ## アーキテクチャ
 

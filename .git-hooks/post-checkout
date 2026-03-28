@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+# Git post-checkout フック
+#
+# checkout または worktree 追加時に自動実行されます
+#
+# 引数:
+# $1: 前回のHEAD ref
+# $2: 新しいHEAD ref
+# $3: ブランチ切り替えフラグ (1=ブランチ切り替え, 0=ファイルチェックアウト)
+
+set -euo pipefail
+
+readonly HOOKS_DIR="$(cd "$(dirname "$0")" && pwd)"
+readonly SCRIPT_NAME="setup-worktree.sh"
+readonly SCRIPT_PATH="$HOOKS_DIR/$SCRIPT_NAME"
+readonly ZERO_SHA_REGEX='^0+$'
+
+# ブランチ切り替え時($3=1) のみ処理対象
+if [[ "$3" != "1" ]]; then
+    exit 0
+fi
+
+OLD_HEAD="$1"
+GIT_DIR="$(git rev-parse --absolute-git-dir)"
+COMMON_DIR="$(git rev-parse --git-common-dir)"
+
+# linked worktree 以外では何もしない
+if [[ "$GIT_DIR" == "$COMMON_DIR" ]]; then
+    exit 0
+fi
+
+# worktree add 直後のみ実行（通常の checkout は除外）
+if [[ ! "$OLD_HEAD" =~ $ZERO_SHA_REGEX ]]; then
+    exit 0
+fi
+
+WORKTREE_PATH="$(git rev-parse --show-toplevel)"
+MAIN_REPO_PATH="$(dirname "$COMMON_DIR")"
+
+if [[ ! -f "$SCRIPT_PATH" ]]; then
+    echo "⚠️  Worktree セットアップスクリプトが見つかりません: $SCRIPT_PATH"
+    exit 0
+fi
+
+echo ""
+echo "=========================================="
+echo "🚀 Worktree セットアップを開始します"
+echo "=========================================="
+
+# worktree add 後の hook 終了に巻き込まれないよう、HUP を無視してバックグラウンド実行
+nohup bash "$SCRIPT_PATH" "$WORKTREE_PATH" "$MAIN_REPO_PATH" >/dev/null 2>&1 &
+
+echo "セットアップをバックグラウンドで実行中..."
+echo "ログ: tail -f $WORKTREE_PATH/.worktree-setup.log で確認できます"
