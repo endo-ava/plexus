@@ -48,6 +48,13 @@ keytool -genkey -v \
   -keyalg RSA -keysize 2048 -validity 10000
 ```
 
+補足:
+
+- Android の debug ビルドでは `debug.keystore` が必要です
+- Android Studio / Gradle が自動生成した標準 debug keystore は通常 `/root/.android/debug.keystore` にあります
+- internal 配布用 workflow でも同じ debug keystore を使えます
+- 既存の EgoGraph 用 debug keystore を流用しても、`applicationId` が `dev.plexus.app` ならアプリ共存には影響しません
+
 #### B. ビルド実行
 
 環境変数を設定してビルドします。
@@ -73,3 +80,21 @@ export KEY_PASSWORD="your-password"
 `ci-frontend.yml` で自動テストと debug ビルドを行い、internal debug APK publish workflow で実機確認用 APK を配布できます。
 
 内部配布用 artifact は production release ではありません。用途を明示したうえで GitHub pre-release へ配置してください。
+
+### 4.1 GitHub Secrets
+
+Frontend の CI / internal APK 配布では次の secrets を使います。
+
+- `GOOGLE_SERVICES_JSON_BASE64`
+  `google-services.json` を base64 化した文字列
+- `DEBUG_KEYSTORE_BASE64`
+  `debug.keystore` を base64 化した文字列
+- `DEBUG_KEYSTORE_PASSWORD`
+  debug keystore のパスワード
+
+Linux での生成例:
+
+```bash
+base64 -w0 /absolute/path/to/google-services.json
+base64 -w0 /root/.android/debug.keystore
+```
