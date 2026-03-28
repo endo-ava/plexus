@@ -3,7 +3,6 @@ package dev.plexus.shared.di
 import dev.plexus.shared.core.data.repository.MessageRepositoryImpl
 import dev.plexus.shared.core.data.repository.ThreadRepositoryImpl
 import dev.plexus.shared.core.data.repository.internal.RepositoryClient
-import dev.plexus.shared.core.domain.repository.ChatRepository
 import dev.plexus.shared.core.domain.repository.MessageRepository
 import dev.plexus.shared.core.domain.repository.ThreadRepository
 import io.ktor.client.HttpClient
@@ -102,30 +101,6 @@ class KoinDiTest : KoinTest {
             e.printStackTrace()
             println("Cause: ${e.cause}")
             e.cause?.printStackTrace()
-            throw e
-        } finally {
-            stopKoin()
-        }
-    }
-
-    @Test
-    fun `ChatRepository should be injectable`() {
-        // Arrange
-        // Koin module is configured
-
-        try {
-            // Act
-            startKoin {
-                modules(appModule)
-            }
-
-            val repository: ChatRepository by inject()
-
-            // Assert
-            assertNotNull(repository)
-        } catch (e: Exception) {
-            println("Error injecting ChatRepository: ${e.message}")
-            e.printStackTrace()
             throw e
         } finally {
             stopKoin()

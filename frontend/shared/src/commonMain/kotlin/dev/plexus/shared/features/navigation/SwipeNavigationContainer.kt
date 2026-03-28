@@ -13,8 +13,7 @@ import androidx.compose.ui.input.pointer.pointerInput
  *
  * @param activeView 現在のアクティブなView
  * @param onSwipeToSidebar スワイプでサイドバーへ遷移するコールバック
- * @param onSwipeToTerminal スワイプでターミナルへ遷移するコールバック
- * @param onSwipeToChat スワイプでチャットへ遷移するコールバック
+ * @param onSwipeToTerminal スワイプでターミナル一覧へ遷移するコールバック
  * @param content 表示するコンテンツ
  */
 @Composable
@@ -22,7 +21,6 @@ fun SwipeNavigationContainer(
     activeView: MainView,
     onSwipeToSidebar: () -> Unit,
     onSwipeToTerminal: () -> Unit,
-    onSwipeToChat: () -> Unit,
     content: @Composable BoxScope.() -> Unit,
 ) {
     Box(
@@ -47,26 +45,15 @@ fun SwipeNavigationContainer(
                             val swipeThreshold = size.width * 0.2f
 
                             when {
-                                activeView == MainView.Chat && accumulatedDragX >= swipeThreshold -> {
+                                activeView == MainView.Terminal && accumulatedDragX >= swipeThreshold -> {
                                     handled = true
                                     onSwipeToSidebar()
-                                    change.consume()
-                                }
-                                activeView == MainView.Chat && accumulatedDragX <= -swipeThreshold -> {
-                                    handled = true
-                                    onSwipeToTerminal()
-                                    change.consume()
-                                }
-                                activeView == MainView.Terminal &&
-                                    (accumulatedDragX >= swipeThreshold || accumulatedDragX <= -swipeThreshold) -> {
-                                    handled = true
-                                    onSwipeToChat()
                                     change.consume()
                                 }
                                 activeView == MainView.TerminalSession &&
                                     (accumulatedDragX >= swipeThreshold || accumulatedDragX <= -swipeThreshold) -> {
                                     handled = true
-                                    onSwipeToChat()
+                                    onSwipeToTerminal()
                                     change.consume()
                                 }
                             }

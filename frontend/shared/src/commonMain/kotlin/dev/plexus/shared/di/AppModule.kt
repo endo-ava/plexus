@@ -2,16 +2,10 @@ package dev.plexus.shared.di
 
 import dev.plexus.shared.cache.DiskCache
 import dev.plexus.shared.cache.DiskCacheContext
-import dev.plexus.shared.core.data.repository.ChatRepositoryImpl
-import dev.plexus.shared.core.data.repository.MessageRepositoryImpl
 import dev.plexus.shared.core.data.repository.SystemPromptRepositoryImpl
-import dev.plexus.shared.core.data.repository.ThreadRepositoryImpl
 import dev.plexus.shared.core.data.repository.internal.InMemoryCache
 import dev.plexus.shared.core.data.repository.internal.RepositoryClient
-import dev.plexus.shared.core.domain.repository.ChatRepository
-import dev.plexus.shared.core.domain.repository.MessageRepository
 import dev.plexus.shared.core.domain.repository.SystemPromptRepository
-import dev.plexus.shared.core.domain.repository.ThreadRepository
 import dev.plexus.shared.core.network.HttpClientConfig
 import dev.plexus.shared.core.network.HttpClientConfigProvider
 import dev.plexus.shared.core.network.provideHttpClient
@@ -22,7 +16,6 @@ import dev.plexus.shared.core.platform.getDefaultBaseUrl
 import dev.plexus.shared.core.platform.normalizeBaseUrl
 import dev.plexus.shared.core.settings.ThemeRepository
 import dev.plexus.shared.core.settings.ThemeRepositoryImpl
-import dev.plexus.shared.features.chat.ChatScreenModel
 import dev.plexus.shared.features.settings.SettingsScreenModel
 import dev.plexus.shared.features.systemprompt.SystemPromptEditorScreenModel
 import dev.plexus.shared.features.terminal.agentlist.AgentListScreenModel
@@ -85,31 +78,10 @@ val appModule =
         single<InMemoryCache<String, Any>> { InMemoryCache() }
 
         // === Repositories ===
-        single<ThreadRepository> {
-            ThreadRepositoryImpl(
-                repositoryClient = get(qualifier = named("BackendClient")),
-                diskCache = getOrNull(),
-            )
-        }
-
         single<SystemPromptRepository> {
             SystemPromptRepositoryImpl(
                 repositoryClient = get(qualifier = named("BackendClient")),
                 diskCache = getOrNull(),
-            )
-        }
-
-        single<MessageRepository> {
-            MessageRepositoryImpl(
-                repositoryClient = get(qualifier = named("BackendClient")),
-                diskCache = getOrNull(),
-            )
-        }
-
-        single<ChatRepository> {
-            ChatRepositoryImpl(
-                repositoryClient = get(qualifier = named("BackendClient")),
-                httpClientConfig = get<HttpClientConfig>(),
             )
         }
 
@@ -118,15 +90,6 @@ val appModule =
         }
 
         // === ScreenModels ===
-        single {
-            ChatScreenModel(
-                threadRepository = get(),
-                messageRepository = get(),
-                chatRepository = get(),
-                preferences = get(),
-            )
-        }
-
         factory {
             AgentListScreenModel(
                 terminalRepository = get(),

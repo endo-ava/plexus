@@ -4,14 +4,11 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Computer
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.Tune
@@ -22,13 +19,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.TextOverflow
 import dev.plexus.shared.core.ui.common.testTagResourceId
 import dev.plexus.shared.core.ui.theme.PlexusThemeTokens
 
 @Composable
 fun SidebarFooter(
-    onNewChatClick: () -> Unit,
     onSettingsClick: () -> Unit,
     onTerminalClick: () -> Unit,
     onSystemPromptClick: () -> Unit,
@@ -63,14 +58,6 @@ fun SidebarFooter(
             onClick = onTerminalClick,
             contentDescription = "Terminal",
             testTag = "terminal_button",
-            modifier = Modifier.weight(1f),
-        )
-
-        FooterIconWithLabelButton(
-            icon = Icons.Outlined.Add,
-            label = "New",
-            onClick = onNewChatClick,
-            testTag = "new_chat_button",
             modifier = Modifier.weight(1f),
         )
     }
@@ -108,52 +95,6 @@ private fun FooterIconButton(
                 contentDescription = contentDescription,
                 modifier = Modifier.size(dimens.iconSize18),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-    }
-}
-
-@Composable
-private fun FooterIconWithLabelButton(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    label: String,
-    onClick: () -> Unit,
-    testTag: String,
-    modifier: Modifier = Modifier,
-) {
-    val dimens = PlexusThemeTokens.dimens
-    val shapes = PlexusThemeTokens.shapes
-
-    Surface(
-        onClick = onClick,
-        shape = shapes.radiusLg,
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-        border = BorderStroke(dimens.borderWidthThin, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
-        tonalElevation = dimens.zero,
-        shadowElevation = dimens.zero,
-        modifier =
-            modifier
-                .height(dimens.space36)
-                .testTagResourceId(testTag),
-    ) {
-        Row(
-            modifier = Modifier.padding(horizontal = dimens.space12),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center,
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                modifier = Modifier.size(dimens.iconSizeSmall),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Spacer(modifier = Modifier.width(dimens.space4))
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
             )
         }
     }
