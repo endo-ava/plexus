@@ -19,13 +19,14 @@ android {
 
     val keystorePath = "debug.keystore"
     val keystorePassword = System.getenv("KEYSTORE_PASSWORD")
+    val keystoreAlias = System.getenv("KEY_ALIAS") ?: "androiddebugkey"
 
     signingConfigs {
         if (keystorePassword != null) {
             create("release") {
                 storeFile = file(keystorePath)
                 storePassword = keystorePassword
-                keyAlias = "plexus_debug"
+                keyAlias = keystoreAlias
                 keyPassword = keystorePassword
             }
         }
