@@ -31,7 +31,6 @@ import dev.plexus.shared.core.platform.PlatformPrefsKeys
 import dev.plexus.shared.core.ui.theme.PlexusThemeTokens
 import dev.plexus.shared.features.navigation.MainNavigationHost
 import dev.plexus.shared.features.navigation.MainView
-import dev.plexus.shared.features.settings.SettingsScreen
 import dev.plexus.shared.features.systemprompt.SystemPromptEditorScreen
 import dev.plexus.shared.features.terminal.agentlist.AgentListScreen
 import dev.plexus.shared.features.terminal.session.TerminalScreen
@@ -111,7 +110,7 @@ class SidebarScreen : Screen {
 
                     SidebarFooter(
                         onSettingsClick = {
-                            activeView = MainView.Settings
+                            activeView = MainView.GatewaySettings
                             scope.launch { drawerState.close() }
                         },
                         onTerminalClick = {
@@ -148,16 +147,6 @@ class SidebarScreen : Screen {
                                 )
                             }
                         promptScreen.Content()
-                    }
-
-                    MainView.Settings -> {
-                        val settingsScreen =
-                            remember {
-                                SettingsScreen(
-                                    onBack = { activeView = MainView.Terminal },
-                                )
-                            }
-                        settingsScreen.Content()
                     }
 
                     MainView.Terminal -> agentListScreen.Content()

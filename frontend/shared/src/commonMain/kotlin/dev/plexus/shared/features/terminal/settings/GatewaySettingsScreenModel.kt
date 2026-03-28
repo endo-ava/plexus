@@ -8,6 +8,8 @@ import dev.plexus.shared.core.platform.PlatformPrefsKeys
 import dev.plexus.shared.core.platform.getDefaultGatewayBaseUrl
 import dev.plexus.shared.core.platform.isValidUrl
 import dev.plexus.shared.core.platform.normalizeBaseUrl
+import dev.plexus.shared.core.settings.AppTheme
+import dev.plexus.shared.core.settings.ThemeRepository
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
@@ -30,6 +32,7 @@ import kotlinx.coroutines.sync.Mutex
 
 class GatewaySettingsScreenModel(
     private val preferences: PlatformPreferences,
+    private val themeRepository: ThemeRepository,
 ) : ScreenModel {
     private val saveMutex = Mutex()
 
@@ -55,6 +58,12 @@ class GatewaySettingsScreenModel(
                     ),
             )
         }
+
+        screenModelScope.launch {
+            themeRepository.theme.collect { theme ->
+                _state.update { current -> current.copy(selectedTheme = theme) }
+            }
+        }
     }
 
     fun onGatewayUrlChange(value: String) {
@@ -63,6 +72,10 @@ class GatewaySettingsScreenModel(
 
     fun onApiKeyChange(value: String) {
         _state.update { it.copy(inputApiKey = value) }
+    }
+
+    fun onThemeSelected(theme: AppTheme) {
+        themeRepository.setTheme(theme)
     }
 
     fun saveSettings() {

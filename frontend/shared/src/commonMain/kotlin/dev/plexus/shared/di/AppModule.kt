@@ -16,7 +16,6 @@ import dev.plexus.shared.core.platform.getDefaultBaseUrl
 import dev.plexus.shared.core.platform.normalizeBaseUrl
 import dev.plexus.shared.core.settings.ThemeRepository
 import dev.plexus.shared.core.settings.ThemeRepositoryImpl
-import dev.plexus.shared.features.settings.SettingsScreenModel
 import dev.plexus.shared.features.systemprompt.SystemPromptEditorScreenModel
 import dev.plexus.shared.features.terminal.agentlist.AgentListScreenModel
 import dev.plexus.shared.features.terminal.settings.GatewaySettingsScreenModel
@@ -100,19 +99,13 @@ val appModule =
         factory {
             GatewaySettingsScreenModel(
                 preferences = get(),
+                themeRepository = get(),
             )
         }
 
         factory {
             SystemPromptEditorScreenModel(
                 repository = get(),
-            )
-        }
-
-        factory {
-            SettingsScreenModel(
-                preferences = get(),
-                themeRepository = get(),
             )
         }
     }

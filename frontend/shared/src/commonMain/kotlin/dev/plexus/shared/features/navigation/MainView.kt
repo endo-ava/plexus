@@ -5,7 +5,6 @@ package dev.plexus.shared.features.navigation
  */
 enum class MainView {
     SystemPrompt,
-    Settings,
     Terminal,
     GatewaySettings,
     TerminalSession,

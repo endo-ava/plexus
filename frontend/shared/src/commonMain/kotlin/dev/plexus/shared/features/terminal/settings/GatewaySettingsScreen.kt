@@ -1,14 +1,18 @@
 package dev.plexus.shared.features.terminal.settings
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.clickable
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -19,10 +23,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.koin.koinScreenModel
 import dev.plexus.shared.core.platform.isValidUrl
+import dev.plexus.shared.core.settings.AppTheme
 import dev.plexus.shared.core.ui.components.SecretTextField
 import dev.plexus.shared.core.ui.components.SettingsTopBar
 import dev.plexus.shared.core.ui.theme.PlexusThemeTokens
@@ -66,6 +72,8 @@ class GatewaySettingsScreen(
                         .padding(paddingValues),
             ) {
                 GatewaySettingsContent(
+                    selectedTheme = state.selectedTheme,
+                    onThemeSelected = screenModel::onThemeSelected,
                     gatewayUrl = state.inputGatewayUrl,
                     onGatewayUrlChange = screenModel::onGatewayUrlChange,
                     apiKey = state.inputApiKey,
@@ -80,13 +88,15 @@ class GatewaySettingsScreen(
 
 @Composable
 private fun GatewaySettingsContent(
+    selectedTheme: AppTheme,
+    onThemeSelected: (AppTheme) -> Unit,
     gatewayUrl: String,
     onGatewayUrlChange: (String) -> Unit,
     apiKey: String,
     onApiKeyChange: (String) -> Unit,
     onSave: () -> Unit,
     isSaving: Boolean,
-) {
+    ) {
     val dimens = PlexusThemeTokens.dimens
 
     Column(
@@ -95,6 +105,22 @@ private fun GatewaySettingsContent(
                 .fillMaxSize()
                 .padding(dimens.space16),
     ) {
+        Text(
+            text = "Appearance",
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.padding(bottom = dimens.space8),
+        )
+
+        AppTheme.entries.forEach { theme ->
+            ThemeOption(
+                text = theme.displayName,
+                selected = selectedTheme == theme,
+                onClick = { onThemeSelected(theme) },
+            )
+        }
+
+        Spacer(modifier = Modifier.height(dimens.space24))
+
         Text(
             text = "Gateway API Configuration",
             style = MaterialTheme.typography.titleMedium,
@@ -139,5 +165,30 @@ private fun GatewaySettingsContent(
         ) {
             Text("Save Gateway Settings")
         }
+    }
+}
+
+@Composable
+private fun ThemeOption(
+    text: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+) {
+    val dimens = PlexusThemeTokens.dimens
+
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onClick)
+                .padding(vertical = dimens.space4),
+    ) {
+        RadioButton(
+            selected = selected,
+            onClick = onClick,
+        )
+        Spacer(modifier = Modifier.width(dimens.space8))
+        Text(text)
     }
 }
