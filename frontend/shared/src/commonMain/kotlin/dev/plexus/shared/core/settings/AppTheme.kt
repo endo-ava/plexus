@@ -8,7 +8,6 @@ enum class AppTheme(
 ) {
     LIGHT("Light"),
     DARK("Dark"),
-    SYSTEM("System"),
 }
 
 /**
@@ -17,8 +16,8 @@ enum class AppTheme(
 fun String.toAppTheme(): AppTheme =
     when (this.lowercase()) {
         "dark" -> AppTheme.DARK
-        "system" -> AppTheme.SYSTEM
-        else -> AppTheme.LIGHT
+        "light" -> AppTheme.LIGHT
+        else -> AppTheme.DARK
     }
 
 /**

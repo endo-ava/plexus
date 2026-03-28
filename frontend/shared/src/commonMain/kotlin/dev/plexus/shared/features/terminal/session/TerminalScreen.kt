@@ -1,7 +1,6 @@
 package dev.plexus.shared.features.terminal.session
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -84,7 +83,6 @@ private fun TerminalContent(
     val themeRepository = koinInject<ThemeRepository>()
     val terminalRepository = koinInject<TerminalRepository>()
     val selectedTheme by themeRepository.theme.collectAsState()
-    val systemDarkTheme = isSystemInDarkTheme()
     val connectionState by webView.connectionState.collectAsState(initial = false)
     val keyboardState = rememberKeyboardState()
     val density = LocalDensity.current
@@ -108,12 +106,7 @@ private fun TerminalContent(
             onError = { message -> voiceInputError = message.ifBlank { null } },
         )
 
-    val darkMode =
-        when (selectedTheme) {
-            AppTheme.DARK -> true
-            AppTheme.LIGHT -> false
-            AppTheme.SYSTEM -> systemDarkTheme
-        }
+    val darkMode = selectedTheme == AppTheme.DARK
 
     val terminalSettings = rememberTerminalSettings(agentId = agentId, preferences = preferences)
 

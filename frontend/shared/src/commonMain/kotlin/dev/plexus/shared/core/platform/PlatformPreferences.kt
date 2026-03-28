@@ -41,7 +41,7 @@ object PlatformPrefsValues {
 }
 
 object PlatformPrefsDefaults {
-    const val DEFAULT_THEME = PlatformPrefsValues.THEME_LIGHT
+    const val DEFAULT_THEME = PlatformPrefsValues.THEME_DARK
     const val DEFAULT_API_URL = ""
     const val DEFAULT_API_KEY = ""
     const val DEFAULT_GATEWAY_API_URL = ""

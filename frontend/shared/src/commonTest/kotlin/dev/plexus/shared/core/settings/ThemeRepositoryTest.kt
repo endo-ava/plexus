@@ -7,16 +7,16 @@ import kotlin.test.assertTrue
 
 class ThemeRepositoryTest {
     @Test
-    fun `default theme value should be LIGHT`() {
+    fun `default theme value should be DARK`() {
         // Assert
-        assertEquals(PlatformPrefsDefaults.DEFAULT_THEME, "light")
+        assertEquals(PlatformPrefsDefaults.DEFAULT_THEME, "dark")
     }
 
     @Test
-    fun `theme repository should have three variants`() {
+    fun `theme repository should have two variants`() {
         // Assert
-        assertEquals(3, AppTheme.entries.size)
-        assertEquals(setOf(AppTheme.LIGHT, AppTheme.DARK, AppTheme.SYSTEM), AppTheme.entries.toSet())
+        assertEquals(2, AppTheme.entries.size)
+        assertEquals(setOf(AppTheme.LIGHT, AppTheme.DARK), AppTheme.entries.toSet())
     }
 
     @Test
@@ -25,9 +25,8 @@ class ThemeRepositoryTest {
         val themes = AppTheme.entries
 
         // Assert
-        assertEquals(3, themes.size)
+        assertEquals(2, themes.size)
         assertTrue(themes.contains(AppTheme.LIGHT))
         assertTrue(themes.contains(AppTheme.DARK))
-        assertTrue(themes.contains(AppTheme.SYSTEM))
     }
 }

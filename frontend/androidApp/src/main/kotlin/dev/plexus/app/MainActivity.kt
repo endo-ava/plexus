@@ -8,7 +8,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.Lifecycle
@@ -89,12 +88,7 @@ class MainActivity : ComponentActivity() {
                 val themeRepository = koinInject<ThemeRepository>()
                 val theme by themeRepository.theme.collectAsState()
 
-                val darkTheme =
-                    when (theme) {
-                        AppTheme.LIGHT -> false
-                        AppTheme.DARK -> true
-                        AppTheme.SYSTEM -> isSystemInDarkTheme()
-                    }
+                val darkTheme = theme == AppTheme.DARK
 
                 PlexusTheme(darkTheme = darkTheme) {
                     Navigator(SidebarScreen()) {

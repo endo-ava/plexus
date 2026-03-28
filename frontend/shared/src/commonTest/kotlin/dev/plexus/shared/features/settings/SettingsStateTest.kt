@@ -11,10 +11,10 @@ import kotlin.test.assertFalse
  */
 class SettingsStateTest {
     @Test
-    fun `SettingsState starts with SYSTEM theme`() {
+    fun `SettingsState starts with DARK theme`() {
         val state = SettingsState()
 
-        assertEquals(dev.plexus.shared.core.settings.AppTheme.SYSTEM, state.selectedTheme)
+        assertEquals(dev.plexus.shared.core.settings.AppTheme.DARK, state.selectedTheme)
     }
 
     @Test

@@ -31,7 +31,7 @@ interface ThemeRepository {
 class ThemeRepositoryImpl(
     private val preferences: PlatformPreferences,
 ) : ThemeRepository {
-    private val _theme = MutableStateFlow(AppTheme.SYSTEM)
+    private val _theme = MutableStateFlow(AppTheme.DARK)
     override val theme: StateFlow<AppTheme> = _theme.asStateFlow()
 
     private val scope = CoroutineScope(Dispatchers.Default)
