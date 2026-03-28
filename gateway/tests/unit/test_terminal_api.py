@@ -226,7 +226,7 @@ class TestBuildSessionResponse:
             patch("gateway.api.terminal.verify_gateway_token"),
             patch(
                 "gateway.api.terminal.get_active_pane_metadata",
-                return_value=(None, "/root/workspace/ego-graph"),
+                return_value=(None, "/root/workspace/plexus"),
             ),
             patch("gateway.api.terminal.TmuxAttachManager") as mock_manager_class,
         ):
@@ -237,7 +237,7 @@ class TestBuildSessionResponse:
             response = await _build_session_response("agent-0001", mock_session)
 
             assert response["title"] is None
-            assert response["current_path"] == "/root/workspace/ego-graph"
+            assert response["current_path"] == "/root/workspace/plexus"
 
 
 # ============================================================================
@@ -264,7 +264,7 @@ class TestGetSessions:
             mock_run_sync.side_effect = lambda func, *args: (
                 mock_sessions
                 if getattr(func, "__name__", "") == "list_sessions"
-                else ("Claude Code", "/root/workspace/ego-graph")
+                else ("Claude Code", "/root/workspace/plexus")
             )
             mock_manager = MagicMock()
             mock_manager.capture_snapshot = AsyncMock(
@@ -310,7 +310,7 @@ class TestGetSession:
             mock_run_sync.side_effect = lambda func, *args: (
                 mock_sessions
                 if getattr(func, "__name__", "") == "list_sessions"
-                else ("Claude Code", "/root/workspace/ego-graph")
+                else ("Claude Code", "/root/workspace/plexus")
             )
             mock_manager = MagicMock()
             mock_manager.capture_snapshot = AsyncMock(

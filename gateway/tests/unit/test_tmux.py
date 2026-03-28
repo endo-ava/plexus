@@ -300,33 +300,33 @@ class TestGetActivePaneMetadata:
             result = Mock()
             result.stdout = (
                 "0\tother title\t/tmp/other\n"
-                "1\tClaude Code\t/root/workspace/ego-graph\n"
+                "1\tClaude Code\t/root/workspace/plexus\n"
             )
             mock_run.return_value = result
 
             title, current_path = get_active_pane_metadata("agent-0001")
 
             assert title == "Claude Code"
-            assert current_path == "/root/workspace/ego-graph"
+            assert current_path == "/root/workspace/plexus"
 
     def test_preserves_blank_title_for_active_pane(self) -> None:
         """active pane のタイトルが空でも current_path が保持されることを検証します。"""
         with patch("subprocess.run") as mock_run:
             result = Mock()
-            result.stdout = "1\t\t/root/workspace/ego-graph\n"
+            result.stdout = "1\t\t/root/workspace/plexus\n"
             mock_run.return_value = result
 
             title, current_path = get_active_pane_metadata("agent-0001")
 
             assert title is None
-            assert current_path == "/root/workspace/ego-graph"
+            assert current_path == "/root/workspace/plexus"
 
     def test_falls_back_to_first_pane_when_active_flag_missing(self) -> None:
         """active pane が見つからない場合は先頭 pane の情報へフォールバックすることを検証します。"""
         with patch("subprocess.run") as mock_run:
             result = Mock()
             result.stdout = (
-                "0\tClaude Code\t/root/workspace/ego-graph\n"
+                "0\tClaude Code\t/root/workspace/plexus\n"
                 "0\tOther\t/tmp/other\n"
             )
             mock_run.return_value = result
@@ -334,7 +334,7 @@ class TestGetActivePaneMetadata:
             title, current_path = get_active_pane_metadata("agent-0001")
 
             assert title == "Claude Code"
-            assert current_path == "/root/workspace/ego-graph"
+            assert current_path == "/root/workspace/plexus"
 
     def test_returns_none_pair_on_tmux_failure(self) -> None:
         """tmux 実行に失敗した場合は None ペアを返すことを検証します。"""
