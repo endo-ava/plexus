@@ -41,13 +41,13 @@ fun loadDotenv(file: java.io.File): Map<String, String> {
 
 val dotenv = loadDotenv(rootProject.projectDir.resolve(".env"))
 val debugBaseUrl =
-    dotenv["EGOGRAPH_BASE_URL_DEBUG"]?.takeIf { it.isNotBlank() }
-        ?: project.findProperty("EGOGRAPH_BASE_URL_DEBUG") as? String
+    dotenv["PLEXUS_BASE_URL_DEBUG"]?.takeIf { it.isNotBlank() }
+        ?: project.findProperty("PLEXUS_BASE_URL_DEBUG") as? String
         ?: "http://10.0.2.2:8000"
 
 val debugGatewayBaseUrl =
-    dotenv["EGOGRAPH_GATEWAY_BASE_URL_DEBUG"]?.takeIf { it.isNotBlank() }
-        ?: project.findProperty("EGOGRAPH_GATEWAY_BASE_URL_DEBUG") as? String
+    dotenv["PLEXUS_GATEWAY_BASE_URL_DEBUG"]?.takeIf { it.isNotBlank() }
+        ?: project.findProperty("PLEXUS_GATEWAY_BASE_URL_DEBUG") as? String
         ?: "http://10.0.2.2:8001"
 
 kotlin {
@@ -116,7 +116,7 @@ kotlin {
 }
 
 android {
-    namespace = "dev.egograph.shared"
+    namespace = "dev.plexus.shared"
     compileSdk = 36
 
     defaultConfig {
@@ -129,12 +129,12 @@ android {
         buildConfigField(
             "String",
             "STAGING_BASE_URL",
-            "\"${project.findProperty("EGOGRAPH_BASE_URL_STAGING") ?: "http://192.168.0.2:8000"}\"",
+            "\"${project.findProperty("PLEXUS_BASE_URL_STAGING") ?: "http://192.168.0.2:8000"}\"",
         )
         buildConfigField(
             "String",
             "RELEASE_BASE_URL",
-            "\"${project.findProperty("EGOGRAPH_BASE_URL_RELEASE") ?: "https://api.egograph.dev"}\"",
+            "\"${project.findProperty("PLEXUS_BASE_URL_RELEASE") ?: "https://api.plexus.dev"}\"",
         )
         buildConfigField(
             "String",
@@ -144,12 +144,12 @@ android {
         buildConfigField(
             "String",
             "STAGING_GATEWAY_BASE_URL",
-            "\"${project.findProperty("EGOGRAPH_GATEWAY_BASE_URL_STAGING") ?: "http://192.168.0.2:8001"}\"",
+            "\"${project.findProperty("PLEXUS_GATEWAY_BASE_URL_STAGING") ?: "http://192.168.0.2:8001"}\"",
         )
         buildConfigField(
             "String",
             "RELEASE_GATEWAY_BASE_URL",
-            "\"${project.findProperty("EGOGRAPH_GATEWAY_BASE_URL_RELEASE") ?: "https://gateway.egograph.dev"}\"",
+            "\"${project.findProperty("PLEXUS_GATEWAY_BASE_URL_RELEASE") ?: "https://gateway.plexus.dev"}\"",
         )
     }
 

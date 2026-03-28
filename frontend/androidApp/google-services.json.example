@@ -9,7 +9,7 @@
       "client_info": {
         "mobilesdk_app_id": "YOUR_APP_ID",
         "android_client_info": {
-          "package_name": "dev.egograph.app"
+          "package_name": "dev.plexus.app"
         }
       },
       "oauth_client": [],

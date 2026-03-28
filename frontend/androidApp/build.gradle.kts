@@ -14,7 +14,7 @@ kotlin {
 }
 
 android {
-    namespace = "dev.egograph.app"
+    namespace = "dev.plexus.app"
     compileSdk = 36
 
     val keystorePath = "debug.keystore"
@@ -25,14 +25,14 @@ android {
             create("release") {
                 storeFile = file(keystorePath)
                 storePassword = keystorePassword
-                keyAlias = "egograph_debug"
+                keyAlias = "plexus_debug"
                 keyPassword = keystorePassword
             }
         }
     }
 
     defaultConfig {
-        applicationId = "dev.egograph.app"
+        applicationId = "dev.plexus.app"
         minSdk = 24
         targetSdk = 35
         versionCode = System.getenv("VERSION_CODE")?.toIntOrNull() ?: 1
