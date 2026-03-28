@@ -371,7 +371,7 @@ openssl rand -base64 32
 
 ## 前提条件
 
-1. **Gateway**: 起動済み（tmuxセッション: `egograph-gateway`）
+1. **Gateway**: 起動済み（tmuxセッション: `plexus-gateway`）
 2. **Androidアプリ**: EgoGraphアプリをインストール済み
 3. **FCM設定**: `gateway/.env` に `FCM_PROJECT_ID` が設定済み
 4. **Webhook Secret**: `gateway/.env` に `GATEWAY_WEBHOOK_SECRET` が設定済み
@@ -548,7 +548,7 @@ curl -X POST http://localhost:8001/v1/push/webhook \
 
 1. **Gatewayのログを確認**
    ```bash
-   tmux capture-pane -p -t egograph-gateway | grep -E "webhook|FCM"
+   tmux capture-pane -p -t plexus-gateway | grep -E "webhook|FCM"
    ```
 
 2. **デバイスが登録されているか確認**
@@ -566,7 +566,7 @@ curl -X POST http://localhost:8001/v1/push/webhook \
 
 3. **FCM初期化を確認**
    ```bash
-   tmux capture-pane -p -t egograph-gateway | grep "Firebase"
+   tmux capture-pane -p -t plexus-gateway | grep "Firebase"
    ```
 
    正常に初期化されている場合：
@@ -597,8 +597,8 @@ curl -X POST http://localhost:8001/v1/push/webhook \
 
 **解決策:** Gatewayを再起動してください
 ```bash
-tmux kill-session -t egograph-gateway
-tmux new-session -d -s egograph-gateway 'cd /root/workspace/ego-graph/wt1 && uv run python -m gateway.main'
+tmux kill-session -t plexus-gateway
+tmux new-session -d -s plexus-gateway 'cd /root/workspace/plexus && uv run python -m gateway.main'
 ```
 
 ---

@@ -1,7 +1,7 @@
 # Frontend Deploy (Android)
 
-本番フロントエンドを Android アプリ（KMP）としてビルド・デプロイする手順。
-Kotlin Multiplatform + Compose Multiplatform を使用し、Android ネイティブアプリとして配布する。
+Plexus の Android アプリをビルドし、内部配布用 debug APK を作成する手順。
+Kotlin Multiplatform + Compose Multiplatform を使用し、Android ネイティブアプリとして実機確認に使う。
 
 ## 1. 前提条件
 
@@ -35,16 +35,16 @@ cd frontend
 # 成果物: androidApp/build/outputs/apk/debug/androidApp-debug.apk
 ```
 
-### 2.2 リリースビルド
+### 2.2 内部配布向け署名付き debug ビルド
 
-署名付きリリースビルドを作成するには、キーストアが必要です。
+内部配布で使う debug APK に独自キーストアを使う場合の手順。
 
 #### A. キーストア作成（初回のみ）
 
 ```bash
 keytool -genkey -v \
-  -keystore release.keystore \
-  -alias egograph \
+  -keystore debug.keystore \
+  -alias plexus \
   -keyalg RSA -keysize 2048 -validity 10000
 ```
 
@@ -56,8 +56,8 @@ keytool -genkey -v \
 export KEYSTORE_PASSWORD="your-password"
 export KEY_PASSWORD="your-password"
 
-./gradlew :androidApp:assembleRelease
-# 成果物: androidApp/build/outputs/apk/release/androidApp-release.apk
+./gradlew :androidApp:assembleDebug
+# 成果物: androidApp/build/outputs/apk/debug/androidApp-debug.apk
 ```
 
 ## 3. インストール
@@ -70,12 +70,6 @@ export KEY_PASSWORD="your-password"
 
 ## 4. CI/CD
 
-`ci-frontend.yml` ワークフローにより、GitHub Actions 上で自動テストとビルドが行われます。
+`ci-frontend.yml` で自動テストと debug ビルドを行い、internal debug APK publish workflow で実機確認用 APK を配布できます。
 
-## 5. 旧手順（Capacitor）
-
-React + Capacitor 時代のデプロイ手順は、分離済み legacy repo を前提に以下を参照してください：
-
-- [Legacy deploy doc](https://github.com/endo-ava/egograph-frontend-capacitor-legacy/blob/main/docs/40.deploy/frontend-android-capacitor.md)
-- [Legacy Capacitor architecture doc](https://github.com/endo-ava/egograph-frontend-capacitor-legacy/blob/main/docs/40.deploy/capacitor.md)
-- External repo: <https://github.com/endo-ava/egograph-frontend-capacitor-legacy>
+内部配布用 artifact は production release ではありません。用途を明示したうえで GitHub pre-release へ配置してください。

@@ -71,24 +71,26 @@ frontend/
 - **MockK**
 - **Ktor MockEngine**
 
-## リリース署名
+## 内部配布用 Debug APK
 
-本番リリースには独自の署名キーが必要です。
+実機確認や内部テスト用には debug APK をビルドします。
+GitHub Actions の internal debug APK workflow も同じ `assembleDebug` を使います。
 
-### 1. リリースキーストアの作成
+### 1. デバッグキーストアの用意
 
 ```bash
 keytool -genkey -v \
-  -keystore release.keystore \
+  -keystore debug.keystore \
   -alias plexus \
   -keyalg RSA -keysize 2048 -validity 10000
 ```
 
-### 2. 署名付きリリースビルド
+### 2. 署名付き debug APK ビルド
 
 ```bash
 export KEYSTORE_PASSWORD="your-password"
-export KEY_PASSWORD="your-password"
 
-./gradlew :androidApp:assembleRelease
+./gradlew :androidApp:assembleDebug
 ```
+
+この APK は内部確認用です。本番配布物としては扱いません。

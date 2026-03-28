@@ -1,4 +1,4 @@
-name: Release Frontend (KMP Android APK)
+name: Publish Internal Android Debug APK
 
 on:
   workflow_dispatch:
@@ -12,7 +12,7 @@ permissions:
   contents: write
 
 jobs:
-  build-and-release:
+  build-and-publish-debug-apk:
     runs-on: ubuntu-latest
 
     steps:
@@ -56,7 +56,7 @@ jobs:
         run: |
           echo "${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}" | base64 -d > frontend/androidApp/google-services.json
 
-      - name: Build Debug APK
+      - name: Build internal debug APK
         run: ./gradlew :androidApp:assembleDebug
         working-directory: frontend
         env:
@@ -67,14 +67,18 @@ jobs:
       - name: Rename APK with version
         run: |
           mv frontend/androidApp/build/outputs/apk/debug/androidApp-debug.apk \
-             frontend/androidApp/build/outputs/apk/debug/egograph-${{ env.VERSION_NAME }}.apk
+             frontend/androidApp/build/outputs/apk/debug/plexus-debug-${{ env.VERSION_NAME }}.apk
 
-      - name: Create GitHub Release
+      - name: Publish pre-release with debug APK
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.version.outputs.version }}
-          name: KMP Android APK (${{ steps.version.outputs.version }})
-          files: frontend/androidApp/build/outputs/apk/debug/egograph-*.apk
+          name: Plexus Internal Debug APK (${{ steps.version.outputs.version }})
+          body: |
+            Internal debug APK for device testing.
+            This artifact is not intended for production distribution.
+          files: frontend/androidApp/build/outputs/apk/debug/plexus-debug-*.apk
           generate_release_notes: true
+          prerelease: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
