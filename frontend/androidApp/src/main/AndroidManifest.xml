@@ -26,6 +26,14 @@
             </intent-filter>
         </activity>
 
+        <!-- FCM default notification icon -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_notification" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_color"
+            android:resource="@color/ic_launcher_background" />
+
         <!-- FCM Service -->
         <service
             android:name="dev.plexus.android.fcm.FcmService"
