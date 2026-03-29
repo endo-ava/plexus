@@ -59,7 +59,7 @@ data class PlexusShapes(
 
 @Immutable
 data class PlexusExtendedColors(
-    val success: Color = Color(0xFF4CAF50), // 接続成功、正常状態（緑）
+    val success: Color = Teal400, // 接続成功、正常状態
 )
 
 internal val LocalPlexusDimens = staticCompositionLocalOf { PlexusDimens() }
