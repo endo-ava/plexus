@@ -15,6 +15,7 @@ import dev.plexus.shared.core.platform.normalizeBaseUrl
 import dev.plexus.shared.core.settings.ThemeRepository
 import dev.plexus.shared.core.settings.ThemeRepositoryImpl
 import dev.plexus.shared.features.terminal.agentlist.AgentListScreenModel
+import dev.plexus.shared.features.terminal.settings.GatewaySettingsScreenModel
 import io.ktor.client.HttpClient
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
@@ -82,6 +83,13 @@ val appModule =
             AgentListScreenModel(
                 terminalRepository = get(),
                 preferences = get(),
+            )
+        }
+
+        factory {
+            GatewaySettingsScreenModel(
+                preferences = get(),
+                themeRepository = get(),
             )
         }
     }

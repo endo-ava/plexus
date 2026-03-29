@@ -12,12 +12,13 @@ import dev.plexus.shared.core.platform.PlatformPrefsDefaults
 import dev.plexus.shared.core.platform.PlatformPrefsKeys
 import dev.plexus.shared.features.terminal.agentlist.AgentListScreen
 import dev.plexus.shared.features.terminal.session.TerminalScreen
+import dev.plexus.shared.features.terminal.settings.GatewaySettingsScreen
 import org.koin.compose.koinInject
 
 /**
  * ターミナルナビゲーション画面
  *
- * セッション一覧とターミナルセッションの2画面を切り替えるルート画面。
+ * セッション一覧、ターミナルセッション、Gateway設定の3画面を切り替えるルート画面。
  */
 class TerminalNavigationScreen : Screen {
     @Composable
@@ -32,6 +33,9 @@ class TerminalNavigationScreen : Screen {
                     onSessionSelected = {
                         activeView = MainView.TerminalSession
                     },
+                    onOpenGatewaySettings = {
+                        activeView = MainView.GatewaySettings
+                    },
                 )
             }
 
@@ -43,6 +47,15 @@ class TerminalNavigationScreen : Screen {
         ) { targetView ->
             when (targetView) {
                 MainView.Terminal -> agentListScreen.Content()
+                MainView.GatewaySettings -> {
+                    val gatewaySettingsScreen =
+                        remember {
+                            GatewaySettingsScreen(
+                                onBack = { activeView = MainView.Terminal },
+                            )
+                        }
+                    gatewaySettingsScreen.Content()
+                }
                 MainView.TerminalSession -> {
                     val lastSessionId =
                         preferences.getString(
