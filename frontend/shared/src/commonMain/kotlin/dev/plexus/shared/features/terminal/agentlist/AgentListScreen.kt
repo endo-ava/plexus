@@ -18,12 +18,10 @@ import kotlinx.serialization.Transient
  * Gatewayに接続されたターミナルセッション一覧を表示する。
  *
  * @param onSessionSelected セッション選択コールバック
- * @param onOpenGatewaySettings Gateway設定を開くコールバック
  * @param onShowError エラー表示コールバック
  */
 class AgentListScreen(
     @Transient private val onSessionSelected: (String) -> Unit = {},
-    @Transient private val onOpenGatewaySettings: () -> Unit = {},
     @Transient private val onShowError: (String) -> Unit = {},
 ) : Screen {
     override val key: ScreenKey = uniqueScreenKey
@@ -56,7 +54,6 @@ class AgentListScreen(
             onRefresh = {
                 screenModel.loadSessions()
             },
-            onOpenGatewaySettings = onOpenGatewaySettings,
             modifier = Modifier,
         )
     }

@@ -20,7 +20,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -43,7 +42,6 @@ import dev.plexus.shared.core.ui.theme.monospaceLabelSmall
  * @param error エラーメッセージ
  * @param onSessionClick セッション選択コールバック
  * @param onRefresh 更新コールバック
- * @param onOpenGatewaySettings Gateway設定を開くコールバック
  * @param modifier Modifier
  */
 @Composable
@@ -53,7 +51,6 @@ fun SessionList(
     error: String?,
     onSessionClick: (String) -> Unit,
     onRefresh: () -> Unit,
-    onOpenGatewaySettings: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val dimens = PlexusThemeTokens.dimens
@@ -116,21 +113,6 @@ fun SessionList(
                         Icon(
                             imageVector = Icons.Default.Refresh,
                             contentDescription = "Sync",
-                            modifier = Modifier.size(dimens.iconSizeSmall),
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.width(dimens.space6))
-
-                    OutlinedButton(
-                        onClick = onOpenGatewaySettings,
-                        shape = shapes.radiusXs,
-                        contentPadding = PaddingValues(horizontal = dimens.space8),
-                        modifier = Modifier.height(dimens.space28).widthIn(min = dimens.space48),
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Settings,
-                            contentDescription = "Settings",
                             modifier = Modifier.size(dimens.iconSizeSmall),
                         )
                     }
