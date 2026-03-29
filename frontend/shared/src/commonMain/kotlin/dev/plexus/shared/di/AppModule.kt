@@ -2,10 +2,8 @@ package dev.plexus.shared.di
 
 import dev.plexus.shared.cache.DiskCache
 import dev.plexus.shared.cache.DiskCacheContext
-import dev.plexus.shared.core.data.repository.SystemPromptRepositoryImpl
 import dev.plexus.shared.core.data.repository.internal.InMemoryCache
 import dev.plexus.shared.core.data.repository.internal.RepositoryClient
-import dev.plexus.shared.core.domain.repository.SystemPromptRepository
 import dev.plexus.shared.core.network.HttpClientConfig
 import dev.plexus.shared.core.network.HttpClientConfigProvider
 import dev.plexus.shared.core.network.provideHttpClient
@@ -16,7 +14,6 @@ import dev.plexus.shared.core.platform.getDefaultBaseUrl
 import dev.plexus.shared.core.platform.normalizeBaseUrl
 import dev.plexus.shared.core.settings.ThemeRepository
 import dev.plexus.shared.core.settings.ThemeRepositoryImpl
-import dev.plexus.shared.features.systemprompt.SystemPromptEditorScreenModel
 import dev.plexus.shared.features.terminal.agentlist.AgentListScreenModel
 import dev.plexus.shared.features.terminal.settings.GatewaySettingsScreenModel
 import io.ktor.client.HttpClient
@@ -77,13 +74,6 @@ val appModule =
         single<InMemoryCache<String, Any>> { InMemoryCache() }
 
         // === Repositories ===
-        single<SystemPromptRepository> {
-            SystemPromptRepositoryImpl(
-                repositoryClient = get(qualifier = named("BackendClient")),
-                diskCache = getOrNull(),
-            )
-        }
-
         single<ThemeRepository> {
             ThemeRepositoryImpl(preferences = get())
         }
@@ -100,12 +90,6 @@ val appModule =
             GatewaySettingsScreenModel(
                 preferences = get(),
                 themeRepository = get(),
-            )
-        }
-
-        factory {
-            SystemPromptEditorScreenModel(
-                repository = get(),
             )
         }
     }

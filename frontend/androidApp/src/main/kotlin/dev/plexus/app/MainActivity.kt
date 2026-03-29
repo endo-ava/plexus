@@ -21,7 +21,7 @@ import dev.plexus.shared.core.platform.terminal.ActivityRecorder
 import dev.plexus.shared.core.settings.AppTheme
 import dev.plexus.shared.core.settings.ThemeRepository
 import dev.plexus.shared.core.ui.theme.PlexusTheme
-import dev.plexus.shared.features.sidebar.SidebarScreen
+import dev.plexus.shared.features.navigation.TerminalNavigationScreen
 import org.koin.compose.KoinContext
 import org.koin.compose.koinInject
 
@@ -91,7 +91,7 @@ class MainActivity : ComponentActivity() {
                 val darkTheme = theme == AppTheme.DARK
 
                 PlexusTheme(darkTheme = darkTheme) {
-                    Navigator(SidebarScreen()) {
+                    Navigator(TerminalNavigationScreen()) {
                         CurrentScreen()
                     }
                 }
