@@ -6,6 +6,7 @@ Concept documents:
 
 - English: `docs/CONCEPT.md`
 - Japanese: `docs/CONCEPT.ja.md`
+- Architecture: `docs/10.architecture/`
 
 Plexus is built around two connected surfaces:
 
