@@ -52,7 +52,7 @@ Plexus は次の3つを runtime の中核として扱います。
 ```bash
 # === Gateway ===
 cd gateway
-uv run python -m gateway.main
+tmux new-session -d -s gateway 'uv run python -m gateway.main'
 uv run pytest tests -v
 uv run pytest tests/unit -v
 uv run ruff check .
@@ -107,7 +107,6 @@ maestro test maestro/flows/
 | --- | --- | --- |
 | Gateway API の確認 | `tmux-api-debug` | runtime API の再現・ログ確認 |
 | Android 実機 / エミュレータ確認 | `android-adb-debug` | frontend の挙動確認、インストール、UI確認 |
-| ADB 接続トラブル | `adb-connection-troubleshoot` | Linux から Android / Windows emulator への接続診断 |
 
 ### Android / ADB 構成
 

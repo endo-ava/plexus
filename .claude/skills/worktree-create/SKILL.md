@@ -1,3 +1,8 @@
+---
+name: "worktree-create"
+description: "Git Worktreeを作成するSkill。「WTを切って」「ワークツリーで作業」等の依頼に対応"
+---
+
 Git worktree を作成してください。
 
 ## 実行手順
