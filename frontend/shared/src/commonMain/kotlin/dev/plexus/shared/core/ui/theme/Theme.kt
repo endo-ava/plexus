@@ -21,18 +21,18 @@ val Zinc800 = Color(0xFF27272A)
 val Zinc900 = Color(0xFF18181B)
 val Zinc950 = Color(0xFF09090B)
 
-// Cyan Palette（ブランドカラー）
-val Cyan50 = Color(0xFFECFEFF)
-val Cyan100 = Color(0xFFCFFAFE)
-val Cyan200 = Color(0xFFA5F3FC)
-val Cyan300 = Color(0xFF67E8F9)
-val Cyan400 = Color(0xFF22D3EE)
-val Cyan500 = Color(0xFF06B6D4)
-val Cyan600 = Color(0xFF0891B2)
-val Cyan700 = Color(0xFF0E7490)
-val Cyan800 = Color(0xFF155E75)
-val Cyan900 = Color(0xFF164E63)
-val Cyan950 = Color(0xFF083344)
+// Teal Palette（ブランドカラー）
+val Teal50 = Color(0xFFF0FDFA)
+val Teal100 = Color(0xFFCCFBF1)
+val Teal200 = Color(0xFF99F6E4)
+val Teal300 = Color(0xFF5EEAD4)
+val Teal400 = Color(0xFF2DD4BF)
+val Teal500 = Color(0xFF14B8A6)
+val Teal600 = Color(0xFF0D9488)
+val Teal700 = Color(0xFF0F766E)
+val Teal800 = Color(0xFF115E59)
+val Teal900 = Color(0xFF134E4A)
+val Teal950 = Color(0xFF042F2E)
 
 // === Error Colors ===
 // Light Theme
@@ -49,16 +49,16 @@ private val OnErrorContainerRedDark = ErrorContainerRed
 
 private val LightColorScheme =
     lightColorScheme(
-        // === Primary: Cyan ===
-        primary = Cyan600,
+        // === Primary: Teal ===
+        primary = Teal600,
         onPrimary = Color.White,
-        primaryContainer = Cyan100,
-        onPrimaryContainer = Cyan950,
-        // === Secondary: Cyan ===
-        secondary = Cyan500,
+        primaryContainer = Teal100,
+        onPrimaryContainer = Teal950,
+        // === Secondary: Teal ===
+        secondary = Teal500,
         onSecondary = Color.White,
-        secondaryContainer = Cyan300,
-        onSecondaryContainer = Cyan950,
+        secondaryContainer = Teal300,
+        onSecondaryContainer = Teal950,
         // === Tertiary: Zinc ===
         tertiary = Zinc700,
         onTertiary = Zinc50,
@@ -87,18 +87,19 @@ private val LightColorScheme =
         outlineVariant = Zinc200,
     )
 
+// Pattern A: primary = Teal300 (#5EEAD4)
 private val DarkColorScheme =
     darkColorScheme(
-        // === Primary: Cyan ===
-        primary = Cyan500,
-        onPrimary = Cyan50,
-        primaryContainer = Cyan700,
-        onPrimaryContainer = Cyan50,
-        // === Secondary: Cyan ===
-        secondary = Cyan400,
-        onSecondary = Cyan950,
-        secondaryContainer = Cyan600,
-        onSecondaryContainer = Cyan100,
+        // === Primary: Teal ===
+        primary = Teal300,
+        onPrimary = Teal950,
+        primaryContainer = Teal700,
+        onPrimaryContainer = Teal50,
+        // === Secondary: Teal ===
+        secondary = Teal400,
+        onSecondary = Teal950,
+        secondaryContainer = Teal600,
+        onSecondaryContainer = Teal100,
         // === Tertiary: Zinc ===
         tertiary = Zinc300,
         onTertiary = Zinc900,

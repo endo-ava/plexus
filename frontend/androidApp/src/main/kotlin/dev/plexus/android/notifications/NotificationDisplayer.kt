@@ -7,6 +7,7 @@ import android.content.Intent
 import androidx.core.app.NotificationCompat
 import androidx.core.content.getSystemService
 import dev.plexus.app.MainActivity
+import dev.plexus.app.R
 
 /**
  * 通知表示ユーティリティ
@@ -50,7 +51,7 @@ object NotificationDisplayer {
                 .Builder(context, channelId)
                 .setContentTitle(title)
                 .setContentText(message)
-                .setSmallIcon(android.R.drawable.ic_dialog_info)
+                .setSmallIcon(R.drawable.ic_notification)
                 .setAutoCancel(true)
                 .setContentIntent(pendingIntent)
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
