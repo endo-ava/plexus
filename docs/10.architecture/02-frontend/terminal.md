@@ -1,8 +1,13 @@
-# Terminal 機能設計
+# ターミナル機能設計
+
+関連:
+
+- [フロントエンドアーキテクチャ](./architecture.md)
+- [システムアーキテクチャ](../01-overview/system-architecture.md)
 
 ## 画面構成
 
-セッション一覧画面（AgentListScreen）+ ターミナル画面（TerminalScreen）
+セッション一覧画面（`AgentListScreen`）とターミナル画面（`TerminalScreen`）の 2 画面で構成する。
 
 ---
 
@@ -10,14 +15,14 @@
 
 ### 起動時
 
-1. Gateway APIからアクティブなtmuxセッション一覧を取得
-2. セッション名、ID、ステータスを表示
+1. ゲートウェイ API からアクティブな tmux セッション一覧を取得する
+2. セッション名、ID、ステータスを表示する
 
 ### 操作
 
-- セッション選択 → TerminalScreenへ遷移（セッションIDを渡す）
+- セッション選択 → `TerminalScreen` へ遷移（セッション ID を渡す）
 - リフレッシュボタン → セッション一覧を再取得
-- Gateway設定ボタン → GatewaySettings画面へ遷移
+- ゲートウェイ設定ボタン → `GatewaySettings` 画面へ遷移
 
 ---
 
@@ -25,18 +30,18 @@
 
 ### 接続フロー
 
-1. 画面表示時、WebSocket URLとAPIキーを設定から取得
-2. WebView内のxterm.jsがWebSocket接続を確立
-3. 接続状態を監視（Flow<Boolean>）
+1. 画面表示時、WebSocket URL と API キーを設定から取得する
+2. WebView 内の xterm.js が WebSocket 接続を確立する
+3. 接続状態を `Flow<Boolean>` で監視する
 4. 切断時は自動再接続を試みる
 
 ### キーボード対応
 
-- ソフトウェアキーボード表示時、画面下部に入力欄へフォーカス
-- `SpecialKeysBar` で特殊キー送信: Ctrl, Alt, Tab, Esc, 矢印キー
-- これらはモバイルで通常入力できないキーを補完
+- ソフトウェアキーボード表示時、画面下部の入力欄へフォーカスする
+- `SpecialKeysBar` で特殊キー（Ctrl, Alt, Tab, Esc, 矢印キー）を送信する
+- モバイルで通常入力できないキーを補完する
 
 ### エラーハンドリング
 
-- 接続エラー時、ヘッダーにエラーメッセージを表示
-- Gateway URL/キーが未設定の場合はGatewaySettingsへ誘導
+- 接続エラー時、ヘッダーにエラーメッセージを表示する
+- ゲートウェイ URL / API キーが未設定の場合は `GatewaySettings` へ誘導する
