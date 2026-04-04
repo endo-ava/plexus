@@ -30,3 +30,12 @@ val Typography.monospaceLabelSmall: TextStyle
             fontFamily = FontFamily.Monospace,
             letterSpacing = 0.5.sp,
         )
+
+val Typography.monospaceTitleLarge: TextStyle
+    @Composable
+    @ReadOnlyComposable
+    get() =
+        headlineMedium.copy(
+            fontFamily = FontFamily.Monospace,
+            fontWeight = FontWeight.Bold,
+        )

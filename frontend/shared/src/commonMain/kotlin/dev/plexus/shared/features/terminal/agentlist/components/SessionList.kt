@@ -1,10 +1,9 @@
 package dev.plexus.shared.features.terminal.agentlist.components
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,7 +13,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -22,18 +20,29 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 import dev.plexus.shared.core.domain.model.terminal.Session
 import dev.plexus.shared.core.ui.common.ListStateContent
 import dev.plexus.shared.core.ui.theme.PlexusThemeTokens
 import dev.plexus.shared.core.ui.theme.monospaceLabelSmall
+import dev.plexus.shared.core.ui.theme.monospaceTitleLarge
 
 /**
  * ターミナルセッション一覧コンポーネント
@@ -74,77 +83,69 @@ fun SessionList(
                     .fillMaxWidth()
                     .padding(horizontal = dimens.space16, vertical = dimens.space12),
         ) {
+            // ヘッダー行: タイトル + Active バッジ | アイコンボタン
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Box(
-                    modifier =
-                        Modifier
-                            .size(dimens.indicatorSizeSmall)
-                            .background(
-                                color = if (sessionCount > 0) extendedColors.success else MaterialTheme.colorScheme.outline,
-                                shape = shapes.statusCircle,
-                            ),
+                TerminalIndicatorIcon(
+                    tint = if (sessionCount > 0) extendedColors.success else MaterialTheme.colorScheme.outline,
+                    modifier = Modifier.size(22.dp),
                 )
 
-                Spacer(modifier = Modifier.width(dimens.space8))
+                Spacer(modifier = Modifier.width(dimens.space10))
 
                 Text(
-                    text = "TERMINAL SESSIONS",
-                    style =
-                        MaterialTheme.typography.titleMedium.copy(
-                            fontWeight = FontWeight.Bold,
-                        ),
+                    text = "SESSIONS",
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.Bold,
+                    ),
                     color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f),
                 )
 
-                Row(
-                    horizontalArrangement = Arrangement.End,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    OutlinedButton(
-                        onClick = onRefresh,
-                        enabled = !isLoading,
-                        shape = shapes.radiusXs,
-                        contentPadding = PaddingValues(horizontal = dimens.space8),
-                        modifier = Modifier.height(dimens.space28).widthIn(min = dimens.space48),
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Refresh,
-                            contentDescription = "Sync",
-                            modifier = Modifier.size(dimens.iconSizeSmall),
-                        )
-                    }
+                Spacer(modifier = Modifier.width(dimens.space12))
 
-                    Spacer(modifier = Modifier.width(dimens.space6))
-
-                    OutlinedButton(
-                        onClick = onOpenGatewaySettings,
-                        shape = shapes.radiusXs,
-                        contentPadding = PaddingValues(horizontal = dimens.space8),
-                        modifier = Modifier.height(dimens.space28).widthIn(min = dimens.space48),
+                CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.onSurfaceVariant) {
+                    Row(
+                        horizontalArrangement = Arrangement.End,
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.Settings,
-                            contentDescription = "Settings",
-                            modifier = Modifier.size(dimens.iconSizeSmall),
-                        )
+                        IconButton(
+                            onClick = onRefresh,
+                            enabled = !isLoading,
+                            modifier = Modifier.size(dimens.space48),
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Refresh,
+                                contentDescription = "Sync",
+                                modifier = Modifier.size(dimens.iconSizeMedium),
+                            )
+                        }
+
+                        IconButton(
+                            onClick = onOpenGatewaySettings,
+                            modifier = Modifier.size(dimens.space48),
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Settings,
+                                contentDescription = "Settings",
+                                modifier = Modifier.size(dimens.iconSizeMedium),
+                            )
+                        }
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(dimens.space8))
+            Spacer(modifier = Modifier.height(dimens.space4))
 
             Text(
-                text = "$sessionCount ACTIVE SESSIONS",
+                text = "$sessionCount Active",
                 style =
                     MaterialTheme.typography.monospaceLabelSmall.copy(fontWeight = FontWeight.Medium),
                 color = if (sessionCount > 0) extendedColors.success else MaterialTheme.colorScheme.outline,
-                modifier = Modifier.align(Alignment.End),
             )
         }
 
@@ -204,5 +205,49 @@ private fun SessionListContent(
         item {
             Spacer(modifier = Modifier.height(dimens.space16))
         }
+    }
+}
+
+/**
+ * Lucide Terminal 風のアイコン。
+ * 角丸矩形の中に `>_` プロンプトを描画する。
+ */
+@Composable
+private fun TerminalIndicatorIcon(
+    tint: Color,
+    modifier: Modifier = Modifier,
+) {
+    Canvas(modifier = modifier) {
+        val strokeWidth = 1.4.dp.toPx()
+        val pad = size.width * 0.06f
+        val w = size.width - pad * 2
+        val h = size.height * 0.72f
+        val tl = Offset(pad, (size.height - h) / 2)
+
+        drawRoundRect(
+            color = tint,
+            topLeft = tl,
+            size = Size(w, h),
+            cornerRadius = CornerRadius(2.dp.toPx()),
+            style = Stroke(width = strokeWidth),
+        )
+
+        // > chevron
+        val cx = tl.x + w * 0.2f
+        val mx = tl.x + w * 0.4f
+        val ty = tl.y + h * 0.28f
+        val my = tl.y + h * 0.50f
+        val by = tl.y + h * 0.72f
+        drawLine(tint, Offset(cx, ty), Offset(mx, my), strokeWidth = strokeWidth, cap = StrokeCap.Round)
+        drawLine(tint, Offset(mx, my), Offset(cx, by), strokeWidth = strokeWidth, cap = StrokeCap.Round)
+
+        // _ cursor
+        drawLine(
+            tint,
+            Offset(tl.x + w * 0.52f, tl.y + h * 0.72f),
+            Offset(tl.x + w * 0.78f, tl.y + h * 0.72f),
+            strokeWidth = strokeWidth,
+            cap = StrokeCap.Round,
+        )
     }
 }
