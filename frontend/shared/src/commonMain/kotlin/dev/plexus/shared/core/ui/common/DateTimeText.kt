@@ -17,8 +17,7 @@ import kotlin.time.Instant
  * 30日以上前の場合は "MM/DD HH:MM" 形式にフォールバックする。
  */
 @OptIn(ExperimentalTime::class)
-internal fun String.toRelativeTimeString(): String =
-    toRelativeTimeString(Clock.System.now())
+internal fun String.toRelativeTimeString(): String = toRelativeTimeString(Clock.System.now())
 
 /**
  * 基準時刻を指定して相対時間文字列に変換する。

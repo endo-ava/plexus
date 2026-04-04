@@ -42,7 +42,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.koin.koinScreenModel
 import dev.plexus.shared.core.platform.isValidUrl
@@ -399,11 +398,12 @@ private fun TerminalSaveButton(
             ),
     ) {
         Text(
-            text = when {
-                isSaveSuccess -> "SAVED"
-                isSaving -> "SAVING..."
-                else -> "SAVE"
-            },
+            text =
+                when {
+                    isSaveSuccess -> "SAVED"
+                    isSaving -> "SAVING..."
+                    else -> "SAVE"
+                },
             style = MaterialTheme.typography.monospaceBodyMedium,
         )
     }
