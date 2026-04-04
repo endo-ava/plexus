@@ -380,21 +380,30 @@ private fun TerminalSaveButton(
     val shapes = PlexusThemeTokens.shapes
     val extendedColors = PlexusThemeTokens.extendedColors
 
+    val isButtonEnabled = enabled && !isSaving && !isSaveSuccess
+
     OutlinedButton(
         onClick = onClick,
-        enabled = enabled && !isSaving && !isSaveSuccess,
+        enabled = isButtonEnabled,
         shape = shapes.radiusMd,
         colors =
             ButtonDefaults.outlinedButtonColors(
-                containerColor = if (enabled) extendedColors.success.copy(alpha = 0.1f) else Color.Transparent,
-                contentColor = if (enabled) extendedColors.success else MaterialTheme.colorScheme.outline,
+                containerColor = if (isButtonEnabled) extendedColors.success.copy(alpha = 0.1f) else Color.Transparent,
+                contentColor = if (isButtonEnabled || isSaveSuccess) extendedColors.success else MaterialTheme.colorScheme.outline,
                 disabledContainerColor = Color.Transparent,
                 disabledContentColor = MaterialTheme.colorScheme.outline,
             ),
         border =
             androidx.compose.foundation.BorderStroke(
                 width = dimens.borderWidthThin,
-                color = if (enabled) extendedColors.success else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
+                color =
+                    if (isButtonEnabled ||
+                        isSaveSuccess
+                    ) {
+                        extendedColors.success
+                    } else {
+                        MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                    },
             ),
     ) {
         Text(
