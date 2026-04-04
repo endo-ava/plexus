@@ -103,6 +103,7 @@ class GatewaySettingsScreen(
                     onApiKeyChange = screenModel::onApiKeyChange,
                     onSave = screenModel::saveSettings,
                     isSaving = state.isSaving,
+                    isSaveSuccess = state.isSaveSuccess,
                 )
             }
         }
@@ -160,6 +161,7 @@ private fun GatewaySettingsContent(
     onApiKeyChange: (String) -> Unit,
     onSave: () -> Unit,
     isSaving: Boolean,
+    isSaveSuccess: Boolean = false,
 ) {
     val dimens = PlexusThemeTokens.dimens
     val scrollState = rememberScrollState()
@@ -235,6 +237,7 @@ private fun GatewaySettingsContent(
                     onClick = onSave,
                     enabled = !isSaving && isValidUrl(gatewayUrl) && apiKey.isNotBlank(),
                     isSaving = isSaving,
+                    isSaveSuccess = isSaveSuccess,
                 )
             }
         }
@@ -372,6 +375,7 @@ private fun TerminalSaveButton(
     onClick: () -> Unit,
     enabled: Boolean,
     isSaving: Boolean,
+    isSaveSuccess: Boolean = false,
 ) {
     val dimens = PlexusThemeTokens.dimens
     val shapes = PlexusThemeTokens.shapes
@@ -379,7 +383,7 @@ private fun TerminalSaveButton(
 
     OutlinedButton(
         onClick = onClick,
-        enabled = enabled && !isSaving,
+        enabled = enabled && !isSaving && !isSaveSuccess,
         shape = shapes.radiusMd,
         colors =
             ButtonDefaults.outlinedButtonColors(
@@ -395,7 +399,11 @@ private fun TerminalSaveButton(
             ),
     ) {
         Text(
-            text = if (isSaving) "SAVING..." else "SAVE",
+            text = when {
+                isSaveSuccess -> "SAVED"
+                isSaving -> "SAVING..."
+                else -> "SAVE"
+            },
             style = MaterialTheme.typography.monospaceBodyMedium,
         )
     }

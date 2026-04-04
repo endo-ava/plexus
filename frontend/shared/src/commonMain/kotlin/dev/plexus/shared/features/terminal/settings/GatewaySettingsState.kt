@@ -16,6 +16,7 @@ data class GatewaySettingsState(
     val inputApiKey: String = "",
     val selectedTheme: AppTheme = AppTheme.DARK,
     val isSaving: Boolean = false,
+    val isSaveSuccess: Boolean = false,
 ) {
     val canSave: Boolean
         get() = inputGatewayUrl.isNotBlank() && inputApiKey.isNotBlank()

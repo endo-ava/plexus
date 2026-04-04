@@ -183,7 +183,6 @@ fun SessionListItem(
                     modifier = Modifier.weight(1f),
                 )
             } else if (headerPath != null) {
-                Spacer(modifier = Modifier.weight(1f))
                 FolderBadge(path = headerPath)
             } else if (headerTitle != null) {
                 Text(
