@@ -4,6 +4,10 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.time.Duration.Companion.days
+import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 
@@ -56,5 +60,67 @@ class DateTimeTextTest {
         val result = input.toCompactIsoDateTime()
 
         assertEquals(expectedLocalText(input), result)
+    }
+
+    // --- toRelativeTimeString ---
+
+    @Test
+    fun `toRelativeTimeString shows just now for recent timestamp`() {
+        val now = Instant.parse("2026-04-04T12:00:00Z")
+        val input = "2026-04-04T11:59:30Z"
+
+        val result = input.toRelativeTimeString(now)
+
+        assertEquals("just now", result)
+    }
+
+    @Test
+    fun `toRelativeTimeString shows minutes ago`() {
+        val now = Instant.parse("2026-04-04T12:00:00Z")
+        val input = "2026-04-04T11:50:00Z"
+
+        val result = input.toRelativeTimeString(now)
+
+        assertEquals("10m ago", result)
+    }
+
+    @Test
+    fun `toRelativeTimeString shows hours ago`() {
+        val now = Instant.parse("2026-04-04T12:00:00Z")
+        val input = "2026-04-04T09:00:00Z"
+
+        val result = input.toRelativeTimeString(now)
+
+        assertEquals("3h ago", result)
+    }
+
+    @Test
+    fun `toRelativeTimeString shows days ago`() {
+        val now = Instant.parse("2026-04-04T12:00:00Z")
+        val input = "2026-04-02T12:00:00Z"
+
+        val result = input.toRelativeTimeString(now)
+
+        assertEquals("2d ago", result)
+    }
+
+    @Test
+    fun `toRelativeTimeString falls back to compact date after 30 days`() {
+        val now = Instant.parse("2026-04-04T12:00:00Z")
+        val input = "2026-02-24T13:30:45Z"
+
+        val result = input.toRelativeTimeString(now)
+
+        assertEquals(expectedLocalText(input), result)
+    }
+
+    @Test
+    fun `toRelativeTimeString returns original for invalid input`() {
+        val input = "not-a-date"
+        val now = Instant.parse("2026-04-04T12:00:00Z")
+
+        val result = input.toRelativeTimeString(now)
+
+        assertEquals(input, result)
     }
 }
