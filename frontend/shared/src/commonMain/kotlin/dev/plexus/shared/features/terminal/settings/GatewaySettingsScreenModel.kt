@@ -67,11 +67,11 @@ class GatewaySettingsScreenModel(
     }
 
     fun onGatewayUrlChange(value: String) {
-        _state.update { it.copy(inputGatewayUrl = value) }
+        _state.update { it.copy(inputGatewayUrl = value, isSaveSuccess = false) }
     }
 
     fun onApiKeyChange(value: String) {
-        _state.update { it.copy(inputApiKey = value) }
+        _state.update { it.copy(inputApiKey = value, isSaveSuccess = false) }
     }
 
     fun onThemeSelected(theme: AppTheme) {
@@ -115,10 +115,9 @@ class GatewaySettingsScreenModel(
                     it.copy(
                         inputGatewayUrl = normalizedGatewayUrl,
                         inputApiKey = trimmedApiKey,
+                        isSaveSuccess = true,
                     )
                 }
-                _effect.send(GatewaySettingsEffect.ShowMessage("Gateway settings saved"))
-                _effect.send(GatewaySettingsEffect.NavigateBack)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
