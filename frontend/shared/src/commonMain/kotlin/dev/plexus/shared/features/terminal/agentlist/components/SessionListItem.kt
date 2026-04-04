@@ -36,7 +36,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.sp
 import dev.plexus.shared.core.domain.model.terminal.Session
 import dev.plexus.shared.core.ui.common.testTagResourceId
-import dev.plexus.shared.core.ui.common.toCompactIsoDateTime
+import dev.plexus.shared.core.ui.common.toRelativeTimeString
 import dev.plexus.shared.core.ui.theme.PlexusThemeTokens
 import dev.plexus.shared.core.ui.theme.monospaceBody
 import dev.plexus.shared.core.ui.theme.monospaceLabelSmall
@@ -156,7 +156,7 @@ fun SessionListItem(
             }
             Spacer(modifier = Modifier.width(dimens.space12))
             Text(
-                text = session.lastActivity.toCompactIsoDateTime(),
+                text = session.lastActivity.toRelativeTimeString(),
                 style = MaterialTheme.typography.monospaceLabelSmall,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f),
             )
@@ -170,63 +170,32 @@ fun SessionListItem(
 
         Row(modifier = Modifier.fillMaxWidth()) {
             if (headerTitle != null && headerPath != null) {
-                Box(
+                FolderBadge(path = headerPath)
+                Spacer(modifier = Modifier.width(dimens.space8))
+                Text(
+                    text = headerTitle,
+                    style = MaterialTheme.typography.monospaceLabelSmall,
+                    fontSize = 9.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    textAlign = TextAlign.End,
                     modifier = Modifier.weight(1f),
-                    contentAlignment = Alignment.CenterStart,
-                ) {
-                    Text(
-                        text = headerTitle,
-                        style = MaterialTheme.typography.monospaceLabelSmall,
-                        fontSize = 9.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
-                Spacer(modifier = Modifier.width(dimens.space12))
-                Box(
-                    modifier = Modifier.weight(1f),
-                    contentAlignment = Alignment.CenterEnd,
-                ) {
-                    Text(
-                        text = headerPath,
-                        style = MaterialTheme.typography.monospaceLabelSmall,
-                        fontSize = 9.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        textAlign = TextAlign.End,
-                    )
-                }
+                )
             } else if (headerPath != null) {
-                Box(
-                    modifier = Modifier.fillMaxWidth(),
-                    contentAlignment = Alignment.CenterEnd,
-                ) {
-                    Text(
-                        text = headerPath,
-                        style = MaterialTheme.typography.monospaceLabelSmall,
-                        fontSize = 9.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        textAlign = TextAlign.End,
-                    )
-                }
+                Spacer(modifier = Modifier.weight(1f))
+                FolderBadge(path = headerPath)
             } else if (headerTitle != null) {
-                Box(
+                Text(
+                    text = headerTitle,
+                    style = MaterialTheme.typography.monospaceLabelSmall,
+                    fontSize = 9.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    textAlign = TextAlign.End,
                     modifier = Modifier.fillMaxWidth(),
-                    contentAlignment = Alignment.CenterStart,
-                ) {
-                    Text(
-                        text = headerTitle,
-                        style = MaterialTheme.typography.monospaceLabelSmall,
-                        fontSize = 9.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
+                )
             }
         }
         if (headerTitle != null || headerPath != null) {
@@ -263,5 +232,40 @@ fun SessionListItem(
                 }
             }
         }
+    }
+}
+
+/** パス文字列から一番右側のディレクトリ名を抽出する。 */
+private fun String.lastPathSegment(): String = trimEnd('/').substringAfterLast('/', this)
+
+/**
+ * フォルダ風のバッジコンポーネント。
+ * パスの最後のセグメントだけをピル状のバッジで表示する。
+ */
+@Composable
+private fun FolderBadge(
+    path: String,
+    modifier: Modifier = Modifier,
+) {
+    val dimens = PlexusThemeTokens.dimens
+    val shapes = PlexusThemeTokens.shapes
+    val dirName = path.lastPathSegment()
+
+    Box(
+        modifier =
+            modifier
+                .clip(shapes.radiusXs)
+                .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+                .padding(horizontal = dimens.space6, vertical = dimens.space2),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = dirName,
+            style = MaterialTheme.typography.monospaceLabelSmall,
+            fontSize = 9.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
     }
 }
