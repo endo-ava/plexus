@@ -13,12 +13,14 @@ import androidx.compose.ui.input.pointer.pointerInput
  *
  * @param activeView 現在のアクティブなView
  * @param onSwipeToTerminal スワイプでターミナル一覧へ遷移するコールバック
+ * @param onSwipeToTerminalSession スワイプでターミナルセッションへ遷移するコールバック
  * @param content 表示するコンテンツ
  */
 @Composable
 fun SwipeNavigationContainer(
     activeView: MainView,
     onSwipeToTerminal: () -> Unit,
+    onSwipeToTerminalSession: () -> Unit = {},
     content: @Composable BoxScope.() -> Unit,
 ) {
     Box(
@@ -42,12 +44,22 @@ fun SwipeNavigationContainer(
                             accumulatedDragX += dragAmount
                             val swipeThreshold = size.width * 0.2f
 
-                            if (activeView == MainView.TerminalSession &&
-                                (accumulatedDragX >= swipeThreshold || accumulatedDragX <= -swipeThreshold)
-                            ) {
-                                handled = true
-                                onSwipeToTerminal()
-                                change.consume()
+                            when (activeView) {
+                                MainView.TerminalSession -> {
+                                    if (accumulatedDragX >= swipeThreshold || accumulatedDragX <= -swipeThreshold) {
+                                        handled = true
+                                        onSwipeToTerminal()
+                                        change.consume()
+                                    }
+                                }
+                                MainView.Terminal -> {
+                                    if (accumulatedDragX <= -swipeThreshold) {
+                                        handled = true
+                                        onSwipeToTerminalSession()
+                                        change.consume()
+                                    }
+                                }
+                                else -> Unit
                             }
                         },
                     )

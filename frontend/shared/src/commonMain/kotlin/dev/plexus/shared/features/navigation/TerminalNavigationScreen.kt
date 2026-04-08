@@ -44,6 +44,16 @@ class TerminalNavigationScreen : Screen {
             onSwipeToTerminal = {
                 activeView = MainView.Terminal
             },
+            onSwipeToTerminalSession = {
+                val lastSessionId =
+                    preferences.getString(
+                        PlatformPrefsKeys.KEY_LAST_TERMINAL_SESSION,
+                        PlatformPrefsDefaults.DEFAULT_LAST_TERMINAL_SESSION,
+                    )
+                if (lastSessionId.isNotBlank()) {
+                    activeView = MainView.TerminalSession
+                }
+            },
         ) { targetView ->
             when (targetView) {
                 MainView.Terminal -> agentListScreen.Content()
