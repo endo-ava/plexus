@@ -32,10 +32,6 @@ class AgentListScreenModel(
 
     private var sessionsJob: Job? = null
 
-    init {
-        loadSessions()
-    }
-
     fun loadSessions() {
         sessionsJob?.cancel()
         sessionsJob =
