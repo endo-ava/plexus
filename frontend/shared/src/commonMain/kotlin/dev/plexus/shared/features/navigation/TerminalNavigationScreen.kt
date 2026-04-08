@@ -1,5 +1,6 @@
 package dev.plexus.shared.features.navigation
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -24,6 +25,10 @@ class TerminalNavigationScreen : Screen {
     @Composable
     override fun Content() {
         var activeView by rememberSaveable { mutableStateOf(MainView.Terminal) }
+
+        BackHandler(enabled = activeView != MainView.Terminal) {
+            activeView = MainView.Terminal
+        }
 
         val preferences = koinInject<PlatformPreferences>()
 

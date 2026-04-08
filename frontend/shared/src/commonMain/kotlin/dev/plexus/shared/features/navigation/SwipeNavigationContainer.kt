@@ -59,6 +59,13 @@ fun SwipeNavigationContainer(
                                         change.consume()
                                     }
                                 }
+                                MainView.GatewaySettings -> {
+                                    if (accumulatedDragX <= -swipeThreshold) {
+                                        handled = true
+                                        onSwipeToTerminal()
+                                        change.consume()
+                                    }
+                                }
                                 else -> Unit
                             }
                         },

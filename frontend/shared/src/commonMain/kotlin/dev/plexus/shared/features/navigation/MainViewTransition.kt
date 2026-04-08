@@ -29,6 +29,12 @@ fun MainViewTransition(
                 initialState == MainView.TerminalSession && targetState == MainView.Terminal -> {
                     slideInHorizontally { fullWidth -> -fullWidth } togetherWith slideOutHorizontally { fullWidth -> fullWidth }
                 }
+                initialState == MainView.Terminal && targetState == MainView.GatewaySettings -> {
+                    slideInHorizontally { fullWidth -> fullWidth } togetherWith slideOutHorizontally { fullWidth -> -fullWidth }
+                }
+                initialState == MainView.GatewaySettings && targetState == MainView.Terminal -> {
+                    slideInHorizontally { fullWidth -> -fullWidth } togetherWith slideOutHorizontally { fullWidth -> fullWidth }
+                }
                 else -> EnterTransition.None togetherWith ExitTransition.None
             }
         },
