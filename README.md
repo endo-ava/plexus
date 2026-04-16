@@ -38,8 +38,14 @@ plexus/
 ### Gateway
 
 ```bash
-cd /root/workspace/plexus/gateway
-uv run python -m gateway.main
+# 手動起動（開発用）
+cd /root/workspace/plexus
+tmux new-session -d -s 'uv run --project gateway python -m gateway.main'
+
+# systemd での自動起動（本番推奨）
+sudo bash gateway/deploy/install.sh install
+# → OS 起動時に自動で立ち上がる
+# 詳細: docs/40.deploy/gateway-systemd.md
 ```
 
 ### Frontend
@@ -52,7 +58,7 @@ cd /root/workspace/plexus/frontend
 ### Tests
 
 ```bash
-cd /root/workspace/plexus/gateway
+cd /root/workspace/plexus
 uv run pytest tests -v
 
 cd /root/workspace/plexus/frontend

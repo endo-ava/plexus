@@ -35,12 +35,28 @@ uv sync
 ### サーバー起動
 
 ```bash
-cd gateway
-uv run python -m gateway.main
+uv run --project gateway python -m gateway.main
 ```
 
 `uvicorn gateway.main:app` を直接使うと `GATEWAY_HOST` / `GATEWAY_PORT` が反映されないため、
 設定値で起動したい場合は `python -m gateway.main` を使用してください。
+
+### systemd での自動起動
+
+本番運用では systemd サービスとして登録推奨
+
+```bash
+# インストール・起動
+sudo bash gateway/deploy/install.sh install
+
+# アンインストール
+sudo bash gateway/deploy/install.sh uninstall
+
+# 状態確認
+./gateway/deploy/install.sh status
+```
+
+詳細は [docs/40.deploy/gateway-systemd.md](../docs/40.deploy/gateway-systemd.md) を参照。
 
 ### テスト実行
 

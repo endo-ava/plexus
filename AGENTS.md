@@ -50,9 +50,18 @@ Plexus は次の3つを runtime の中核として扱います。
 ## 開発コマンド
 
 ```bash
-# === Gateway ===
+# === Gateway 起動（systemd サービス） ===
+sudo bash gateway/deploy/install.sh install          # 初回: インストール・起動・自動起動有効化
+sudo bash gateway/deploy/install.sh uninstall        # 削除
+bash gateway/deploy/install.sh status                # 状態確認
+sudo journalctl -u plexus-gateway -f                 # ログ追跡
+# 詳細: docs/40.deploy/gateway-systemd.md
+
+# === Gateway 起動（手動・開発用） ===
+tmux new-session -d -s 'uv run --project gateway python -m gateway.main'
+
+# === Gateway テスト・リント ===
 cd gateway
-tmux new-session -d -s gateway 'uv run python -m gateway.main'
 uv run pytest tests -v
 uv run pytest tests/unit -v
 uv run ruff check .

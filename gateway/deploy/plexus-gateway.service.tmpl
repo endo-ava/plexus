@@ -1,0 +1,27 @@
+[Unit]
+Description=Plexus Gateway - tmux runtime API
+After=network.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=__USER__
+Group=__GROUP__
+WorkingDirectory=__WORKDIR__
+ExecStart=__UV__ run --project gateway python -m gateway.main
+Restart=on-failure
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=plexus-gateway
+
+# セキュリティ
+NoNewPrivileges=true
+ProtectSystem=strict
+ReadWritePaths=__WORKDIR__
+
+# 環境変数ファイル（.env がある場合）
+EnvironmentFile=-__WORKDIR__/gateway/.env
+
+[Install]
+WantedBy=multi-user.target
