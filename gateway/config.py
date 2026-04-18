@@ -90,9 +90,6 @@ class GatewayConfig(BaseSettings):
     # デフォルトユーザー ID（MVP では固定）
     default_user_id: str = Field("default_user", alias="DEFAULT_USER_ID")
 
-    # tmux セッション名の正規表現パターン
-    session_pattern: str = Field(r"^agent-[0-9]{4}$", alias="SESSION_PATTERN")
-
     # WebSocket トークン TTL（秒）
     terminal_ws_token_ttl_seconds: int = Field(
         60,

@@ -44,7 +44,6 @@ class TestGatewayConfig:
         assert config.fcm_project_id is None
         assert config.fcm_credentials_path == "gateway/firebase-service-account.json"
         assert config.default_user_id == "default_user"
-        assert config.session_pattern == r"^agent-[0-9]{4}$"
         assert config.terminal_ws_token_ttl_seconds == 60
 
     def test_config_loads_from_environment_variables(self):
@@ -62,7 +61,6 @@ class TestGatewayConfig:
             "FCM_PROJECT_ID": "test-project",
             "FCM_CREDENTIALS_PATH": "gateway/custom-firebase.json",
             "DEFAULT_USER_ID": "test_user",
-            "SESSION_PATTERN": r"^test-[0-9]+$",
             "TERMINAL_WS_TOKEN_TTL_SECONDS": "45",
         }
 
@@ -84,7 +82,6 @@ class TestGatewayConfig:
         assert config.fcm_project_id == "test-project"
         assert config.fcm_credentials_path == "gateway/custom-firebase.json"
         assert config.default_user_id == "test_user"
-        assert config.session_pattern == r"^test-[0-9]+$"
         assert config.terminal_ws_token_ttl_seconds == 45
 
     def test_config_rejects_too_small_ws_token_ttl(self):
