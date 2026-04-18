@@ -1,10 +1,13 @@
 #!/usr/bin/env bash
-# plexus-gateway systemd サービスのインストール / アンインストール / ステータス確認
+# plexus-gateway systemd サービス管理
 #
 # 使い方:
-#   ./install.sh install [WORKDIR]   # systemd に登録して起動
-#   ./install.sh uninstall          # 停止して登録解除
-#   ./install.sh status             # サービス状態を表示
+#   ./plexus install [WORKDIR]   # systemd に登録して起動
+#   ./plexus uninstall           # 停止して登録解除
+#   ./plexus status              # サービス状態を表示
+#   ./plexus update              # git pull + 再起動 + ヘルスチェック
+#   ./plexus restart             # 再起動 + ヘルスチェック
+#   ./plexus logs [-f] [-n N]    # ログを表示
 
 set -euo pipefail
 
@@ -16,6 +19,9 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 WORKDIR_DEFAULT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 SERVICE_FILE="/etc/systemd/system/${SERVICE_NAME}.service"
 TEMPLATE="${SCRIPT_DIR}/${SERVICE_NAME}.service.tmpl"
+
+HEALTH_PORT_DEFAULT=8001
+HEALTH_TIMEOUT=5
 
 # ── ユーティリティ ──────────────────────────────────────────────
 
@@ -30,6 +36,12 @@ check_root() {
   fi
 }
 
+check_installed() {
+  if [[ ! -f "$SERVICE_FILE" ]]; then
+    error "サービスがインストールされていません。先に install を実行してください。"
+  fi
+}
+
 find_uv() {
   local uv_path
   uv_path="$(command -v uv 2>/dev/null || true)"
@@ -37,6 +49,43 @@ find_uv() {
     error "uv が見つかりません。https://docs.astral.sh/uv/ からインストールしてください。"
   fi
   printf "%s" "$uv_path"
+}
+
+detect_health_port() {
+  local env_file="${WORKDIR_DEFAULT}/gateway/.env"
+  local port="${HEALTH_PORT_DEFAULT}"
+
+  if [[ -f "$env_file" ]]; then
+    local env_port
+    env_port="$(grep -oP '^GATEWAY_PORT=\K\d+' "$env_file" 2>/dev/null || true)"
+    if [[ -n "$env_port" ]]; then
+      port="$env_port"
+    fi
+  fi
+
+  printf "%s" "$port"
+}
+
+wait_for_healthy() {
+  local port
+  port="$(detect_health_port)"
+  local url="http://127.0.0.1:${port}/health"
+  local retries=10
+  local i
+
+  info "ヘルスチェック: ${url}"
+
+  for ((i = 1; i <= retries; i++)); do
+    if curl -sf --max-time "${HEALTH_TIMEOUT}" "$url" > /dev/null 2>&1; then
+      ok "ヘルスチェック OK (${i}回目)"
+      return 0
+    fi
+    sleep 1
+  done
+
+  warn "ヘルスチェックが ${retries}回の試行で通りませんでした"
+  info "ログを確認してください: sudo ${SCRIPT_DIR}/plexus logs -n 30"
+  return 1
 }
 
 # ── テンプレート描画 ────────────────────────────────────────────
@@ -113,10 +162,10 @@ do_install() {
 
   echo ""
   info "コマンド一覧:"
-  echo "  sudo systemctl status ${SERVICE_NAME}     # 状態確認"
-  echo "  sudo journalctl -u ${SERVICE_NAME} -f     # ログ追跡"
-  echo "  sudo systemctl restart ${SERVICE_NAME}    # 再起動"
-  echo "  sudo ${SCRIPT_DIR}/install.sh uninstall   # アンインストール"
+  echo "  sudo ${SCRIPT_DIR}/plexus update       # 更新"
+  echo "  sudo ${SCRIPT_DIR}/plexus restart      # 再起動"
+  echo "  ${SCRIPT_DIR}/plexus logs -f           # ログ追跡"
+  echo "  sudo ${SCRIPT_DIR}/plexus uninstall    # アンインストール"
 }
 
 do_uninstall() {
@@ -153,21 +202,105 @@ do_status() {
   systemctl status "$SERVICE_NAME" --no-pager 2>/dev/null || true
 }
 
+do_update() {
+  check_root
+  check_installed
+
+  local workdir="${WORKDIR_DEFAULT}"
+
+  info "Plexus Gateway を更新します"
+
+  cd "$workdir"
+
+  local before after
+
+  before="$(git rev-parse --short HEAD 2>/dev/null || echo "unknown")"
+
+  info "git pull --ff-only を実行中..."
+  if ! git pull --ff-only 2>&1; then
+    error "git pull に失敗しました。ローカルの変更がある可能性があります。"
+  fi
+
+  after="$(git rev-parse --short HEAD 2>/dev/null || echo "unknown")"
+
+  if [[ "$before" == "$after" ]]; then
+    ok "既に最新です (${after})"
+  else
+    ok "更新完了: ${before} -> ${after}"
+  fi
+
+  systemctl restart "$SERVICE_NAME"
+  ok "サービスを再起動しました"
+
+  wait_for_healthy
+}
+
+do_restart() {
+  check_root
+  check_installed
+
+  info "Plexus Gateway を再起動します"
+
+  systemctl restart "$SERVICE_NAME"
+  ok "サービスを再起動しました"
+
+  wait_for_healthy
+}
+
+do_logs() {
+  check_installed
+
+  local follow=false
+  local lines=50
+  local args=()
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      -f|--follow)
+        follow=true
+        shift
+        ;;
+      -n)
+        lines="${2:-50}"
+        shift 2
+        ;;
+      -n*)
+        lines="${1#-n}"
+        shift
+        ;;
+      *)
+        args+=("$1")
+        shift
+        ;;
+    esac
+  done
+
+  if $follow; then
+    journalctl -u "$SERVICE_NAME" -f "${args[@]}"
+  else
+    journalctl -u "$SERVICE_NAME" -n "$lines" --no-pager "${args[@]}"
+  fi
+}
+
 # ── メイン ───────────────────────────────────────────────────────
 
 usage() {
-  echo "使い方: $0 {install [WORKDIR]|uninstall|status}"
+  echo "使い方: $0 <command> [options]"
   echo ""
+  echo "Commands:"
   echo "  install [WORKDIR]   systemd サービスを登録して起動する"
   echo "                      WORKDIR 省略時はスクリプトの親ディレクトリ"
   echo "  uninstall           サービスを停止・削除する"
   echo "  status              サービス状態を表示する"
+  echo "  update              git pull + 再起動 + ヘルスチェック"
+  echo "  restart             再起動 + ヘルスチェック"
+  echo "  logs [-f] [-n N]    ログを表示する（デフォルト: 最新50行）"
   echo ""
   echo "例:"
-  echo "  sudo ./install.sh install"
-  echo "  sudo ./install.sh install /opt/plexus"
-  echo "  sudo ./install.sh uninstall"
-  echo "  ./install.sh status"
+  echo "  sudo ./plexus install"
+  echo "  sudo ./plexus update"
+  echo "  ./plexus logs -f"
+  echo "  ./plexus logs -n 100"
 }
 
 cmd="${1:-}"
@@ -180,6 +313,16 @@ case "$cmd" in
     ;;
   status)
     do_status
+    ;;
+  update)
+    do_update
+    ;;
+  restart)
+    do_restart
+    ;;
+  logs)
+    shift
+    do_logs "$@"
     ;;
   *)
     usage

@@ -51,9 +51,9 @@ Plexus は次の3つを runtime の中核として扱います。
 
 ```bash
 # === Gateway 起動（systemd サービス） ===
-sudo bash gateway/deploy/install.sh install          # 初回: インストール・起動・自動起動有効化
-sudo bash gateway/deploy/install.sh uninstall        # 削除
-bash gateway/deploy/install.sh status                # 状態確認
+sudo bash gateway/deploy/plexus install          # 初回: インストール・起動・自動起動有効化
+sudo bash gateway/deploy/plexus uninstall        # 削除
+bash gateway/deploy/plexus status                # 状態確認
 sudo journalctl -u plexus-gateway -f                 # ログ追跡
 # 詳細: docs/40.deploy/gateway-systemd.md
 

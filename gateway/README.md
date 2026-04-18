@@ -47,13 +47,16 @@ uv run --project gateway python -m gateway.main
 
 ```bash
 # インストール・起動
-sudo bash gateway/deploy/install.sh install
+sudo bash gateway/deploy/plexus install
+
+# アップデート
+sudo bash gateway/deploy/plexus update
 
 # アンインストール
-sudo bash gateway/deploy/install.sh uninstall
+sudo bash gateway/deploy/plexus uninstall
 
 # 状態確認
-./gateway/deploy/install.sh status
+bash gateway/deploy/plexus status
 ```
 
 詳細は [docs/40.deploy/gateway-systemd.md](../docs/40.deploy/gateway-systemd.md) を参照。

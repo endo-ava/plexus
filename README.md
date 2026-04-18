@@ -43,7 +43,7 @@ cd /root/workspace/plexus
 tmux new-session -d -s 'uv run --project gateway python -m gateway.main'
 
 # systemd での自動起動（本番推奨）
-sudo bash gateway/deploy/install.sh install
+sudo bash gateway/deploy/plexus install
 # → OS 起動時に自動で立ち上がる
 # 詳細: docs/40.deploy/gateway-systemd.md
 ```
