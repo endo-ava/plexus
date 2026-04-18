@@ -48,7 +48,7 @@ def valid_session_id():
 @pytest.fixture
 def invalid_session_id():
     """無効なセッションID。"""
-    return "invalid-session"
+    return "invalid;session"
 
 
 @pytest.fixture
@@ -323,20 +323,31 @@ class TestSessionIdValidation:
         )
 
     @pytest.mark.asyncio
-    async def test_websocket_rejects_suffixed_session_id(self, valid_ws_headers):
-        """接尾辞付きのセッションIDでWebSocket接続が拒否されることを確認する。"""
+    async def test_websocket_accepts_suffixed_session_id(self, valid_ws_headers):
+        """接尾辞付きのセッションIDでもWebSocket接続が受け付けられることを確認する。"""
         mock_websocket = MagicMock()
         mock_websocket.query_params = {"session_id": "agent-0001-8"}
         mock_websocket.headers = valid_ws_headers
         mock_websocket.client = ("100.100.100.100", 12345)
+        mock_websocket.accept = AsyncMock()
+        mock_websocket.receive_text = AsyncMock(
+            return_value='{"type":"auth","ws_token":"test-token"}'
+        )
         mock_websocket.close = AsyncMock()
 
-        await terminal_websocket(mock_websocket)
+        with (
+            patch("gateway.api.terminal.terminal_ws_token_store") as mock_store,
+            patch("gateway.api.terminal.anyio.to_thread.run_sync", return_value=True),
+            patch("gateway.api.terminal.TerminalWebSocketHandler") as mock_handler_class,
+        ):
+            mock_store.consume = AsyncMock(return_value=(True, "agent-0001-8"))
+            mock_handler = MagicMock()
+            mock_handler.handle = AsyncMock()
+            mock_handler_class.return_value = mock_handler
 
-        mock_websocket.accept.assert_not_called()
-        mock_websocket.close.assert_called_once_with(
-            code=1008, reason="Invalid session_id format"
-        )
+            await terminal_websocket(mock_websocket)
+
+            mock_websocket.accept.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_websocket_rejects_invalid_host(self, valid_session_id, valid_token):

@@ -4,7 +4,7 @@ tmux session への WebSocket 接続、snapshot 取得、push 通知を提供す
 
 ## 機能
 
-- **tmux セッション管理**: `agent-XXXX` 形式の tmux セッションを列挙・管理
+- **tmux セッション管理**: tmux セッションを列挙・管理
 - **WebSocket 接続**: 端末入出力の双方向通信
 - **Snapshot**: セッション内容のプレーンテキスト取得
 - **プッシュ通知**: FCM 経由の通知送信

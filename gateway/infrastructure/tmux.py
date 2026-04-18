@@ -4,15 +4,12 @@ tmux セッションの列挙と管理機能を提供します。
 """
 
 import logging
-import re
 import subprocess
 from dataclasses import dataclass
 from datetime import datetime, timezone
 
 logger = logging.getLogger(__name__)
 
-# セッション名の正規表現パターン（agent-XXXX 形式）
-DEFAULT_SESSION_PATTERN = re.compile(r"^agent-[0-9]{4}$")
 TMUX_COMMAND_TIMEOUT_SECONDS = 5
 
 
@@ -31,14 +28,11 @@ class Session:
     created_at: datetime
 
 
-def list_sessions(pattern: re.Pattern[str] = DEFAULT_SESSION_PATTERN) -> list[Session]:
+def list_sessions() -> list[Session]:
     """tmux セッション一覧を取得します。
 
-    `tmux list-sessions` コマンドを使用してセッション情報を取得し、
-    指定された正規表現パターンに一致するセッションのみを返します。
-
-    Args:
-        pattern: セッション名のフィルタリングに使用する正規表現パターン
+    `tmux list-sessions` コマンドを使用してセッション情報を取得します。
+    存在するすべてのセッションを返します。
 
     Returns:
         セッション情報のリスト
@@ -46,13 +40,6 @@ def list_sessions(pattern: re.Pattern[str] = DEFAULT_SESSION_PATTERN) -> list[Se
     Raises:
         subprocess.CalledProcessError: tmux コマンドが失敗した場合
         OSError: tmux がインストールされていない場合
-
-    Example:
-        >>> sessions = list_sessions()
-        >>> len(sessions)
-        2
-        >>> sessions[0].name
-        'agent-0001'
     """
     try:
         # tmux list-sessions の実行
@@ -94,11 +81,6 @@ def list_sessions(pattern: re.Pattern[str] = DEFAULT_SESSION_PATTERN) -> list[Se
             continue
 
         name, activity_str, created_str = parts
-
-        # パターンに一致しないセッションは除外
-        if not pattern.match(name):
-            logger.debug("Skipping non-matching session: %s", name)
-            continue
 
         # タイムスタンプのパース
         try:

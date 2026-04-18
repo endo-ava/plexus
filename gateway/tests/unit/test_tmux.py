@@ -3,7 +3,6 @@
 tmux セッションの列挙、パース機能のテストを行います。
 """
 
-import re
 import subprocess
 from unittest.mock import Mock, patch
 
@@ -111,9 +110,9 @@ class TestListSessions:
             # Assert: 空リストが返されること
             assert sessions == []
 
-    def test_filters_sessions_by_pattern(self) -> None:
-        """正規表現パターンによるフィルタリングを検証します。"""
-        # Arrange: 複数のセッションが存在するが、パターンに一致するもののみ返す
+    def test_returns_all_sessions(self) -> None:
+        """フィルタリングなしで全セッションが返ることを検証します。"""
+        # Arrange: 複数のセッションが存在する
         with patch("subprocess.run") as mock_run:
             result = Mock()
             result.returncode = 0
@@ -127,13 +126,14 @@ class TestListSessions:
             # Act: セッション一覧を取得
             sessions = list_sessions()
 
-            # Assert: agent-* パターンに一致するセッションのみが返されること
-            assert len(sessions) == 2
+            # Assert: すべてのセッションが返されること
+            assert len(sessions) == 3
             assert sessions[0].name == "agent-0001"
-            assert sessions[1].name == "agent-0002"
+            assert sessions[1].name == "other-session"
+            assert sessions[2].name == "agent-0002"
 
-    def test_rejects_suffixed_agent_session_name(self) -> None:
-        """接尾辞付きセッション名が除外されることを検証します。"""
+    def test_accepts_suffixed_session_name(self) -> None:
+        """接尾辞付きセッション名も返されることを検証します。"""
         with patch("subprocess.run") as mock_run:
             result = Mock()
             result.returncode = 0
@@ -142,7 +142,8 @@ class TestListSessions:
 
             sessions = list_sessions()
 
-            assert sessions == []
+            assert len(sessions) == 1
+            assert sessions[0].name == "agent-0001-8"
 
     def test_parses_session_output_correctly(self) -> None:
         """tmux 出力のパースを検証します。"""
@@ -203,27 +204,6 @@ class TestListSessions:
             # Assert: 空リストが返されること（エラーはログに出力される）
             assert sessions == []
 
-    def test_uses_custom_pattern_when_provided(self) -> None:
-        """カスタムパターンの使用を検証します。"""
-        # Arrange: カスタムパターン（test-* のみ）
-        custom_pattern = r"^test-[0-9]+$"
-        pattern = re.compile(custom_pattern)
-
-        with patch("subprocess.run") as mock_run:
-            result = Mock()
-            result.returncode = 0
-            result.stdout = (
-                "test-1\t2025-02-08T12:00:00\t2025-02-08T10:00:00\n"
-                "agent-0001\t2025-02-08T12:00:00\t2025-02-08T10:00:00"
-            )
-            mock_run.return_value = result
-
-            # Act: カスタムパターンでセッション一覧を取得
-            sessions = list_sessions(pattern=pattern)
-
-            # Assert: test-* パターンに一致するセッションのみが返されること
-            assert len(sessions) == 1
-            assert sessions[0].name == "test-1"
 
 
 class TestSessionExists:
@@ -474,9 +454,9 @@ class TestListSessionsEdgeCases:
             assert len(sessions) == 1
             assert sessions[0].name == "agent-0001"
 
-    def test_returns_empty_list_for_no_matching_sessions(self) -> None:
-        """パターンに一致するセッションが存在しない場合の処理を検証します。"""
-        # Arrange: セッションは存在するがパターンに一致しない
+    def test_returns_all_sessions_regardless_of_name(self) -> None:
+        """任意のセッション名が返されることを検証します。"""
+        # Arrange: セッション名が agent-XXXX 形式ではない
         with patch("subprocess.run") as mock_run:
             result = Mock()
             result.returncode = 0
@@ -486,8 +466,9 @@ class TestListSessionsEdgeCases:
             # Act: セッション一覧を取得
             sessions = list_sessions()
 
-            # Assert: 空リストが返されること
-            assert sessions == []
+            # Assert: セッションが返されること
+            assert len(sessions) == 1
+            assert sessions[0].name == "other-session"
 
 
 class TestListSessionsTimestampFallback:

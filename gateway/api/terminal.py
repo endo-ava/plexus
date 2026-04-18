@@ -42,7 +42,7 @@ async def get_sessions(request: Request) -> JSONResponse:
     """tmux セッション一覧を取得します。
 
     `tmux list-sessions` を使用してセッション情報を取得し、
-    `^agent-[0-9]{4}$` パターンに一致するセッションのみを返します。
+    存在するすべてのセッションを返します。
 
     Args:
         request: Starlette リクエストオブジェクト
@@ -209,7 +209,7 @@ async def terminal_websocket(websocket: WebSocket) -> None:
         websocket: WebSocket接続
 
     Query Parameters:
-        session_id: tmuxセッションID (例: agent-0001)
+        session_id: tmuxセッションID
 
     メッセージ形式 (Client -> Server):
         - {"type": "auth", "ws_token": "..."}
@@ -246,7 +246,7 @@ async def terminal_websocket(websocket: WebSocket) -> None:
         )
         return
 
-    # セッションIDのバリデーション (形式: agent-XXXX)
+    # セッションIDのバリデーション
     if not _validate_session_id(session_id):
         logger.warning("Invalid session_id format: %s", session_id)
         await websocket.close(code=1008, reason="Invalid session_id format")
@@ -280,15 +280,20 @@ async def terminal_websocket(websocket: WebSocket) -> None:
 def _validate_session_id(session_id: str) -> bool:
     """セッションIDの形式を検証する。
 
+    tmux セッション名として不正な文字が含まれていないか確認する。
+
     Args:
         session_id: 検証するセッションID
 
     Returns:
         形式が正しい場合はTrue、そうでない場合はFalse
     """
-    # 形式: agent-XXXX (XXXXは4桁の数字)
-    pattern = r"^agent-[0-9]{4}$"
-    return bool(re.match(pattern, session_id))
+    if not session_id:
+        return False
+    # tmux セッション名に使用できない文字を拒否
+    # タブ、改行、セミコロンは tmux ターゲット解釈で問題になる
+    invalid_chars = set("\t\n\r;: ")
+    return not any(c in invalid_chars for c in session_id)
 
 
 def _extract_host_without_port(host_header: str) -> str:

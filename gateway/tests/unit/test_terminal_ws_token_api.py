@@ -79,12 +79,12 @@ class TestIssueWsToken:
             assert "Invalid session_id format" in exc_info.value.detail
 
     @pytest.mark.asyncio
-    async def test_issue_ws_token_invalid_session_id_format_returns_400(
+    async def test_issue_ws_token_rejects_session_id_with_semicolon(
         self, mock_request
     ):
-        """無効なセッションID形式の場合に400エラーを返すことを確認する。"""
+        """セミコロンを含むセッションID形式の場合に400エラーを返すことを確認する。"""
         # Arrange
-        mock_request.path_params = {"session_id": "invalid-format"}
+        mock_request.path_params = {"session_id": "invalid;format"}
 
         with patch("gateway.api.terminal.verify_gateway_token"):
             # Act & Assert
@@ -170,8 +170,14 @@ class TestIssueWsToken:
     @pytest.mark.asyncio
     async def test_issue_ws_token_valid_session_id_formats(self, mock_request):
         """有効なセッションID形式を確認する。"""
-        # Arrange
-        valid_session_ids = ["agent-0000", "agent-0001", "agent-9999"]
+        # Arrange: 様々なセッション名形式が受け入れられること
+        valid_session_ids = [
+            "agent-0001",
+            "agent-0001-8",
+            "my-session",
+            "worker_01",
+            "production.backend",
+        ]
 
         with (
             patch("gateway.api.terminal.verify_gateway_token"),
