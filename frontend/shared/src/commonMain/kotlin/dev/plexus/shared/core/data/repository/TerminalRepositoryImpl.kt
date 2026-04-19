@@ -87,7 +87,7 @@ class TerminalRepositoryImpl(
 
     override suspend fun createSession(
         sessionId: String,
-        workingDir: String?,
+        workingDir: String,
     ): RepositoryResult<Session> =
         wrapRepositoryOperation {
             val session =
@@ -117,6 +117,6 @@ class TerminalRepositoryImpl(
     @Serializable
     private data class CreateSessionRequest(
         @SerialName("session_id") val sessionId: String,
-        @SerialName("working_dir") val workingDir: String? = null,
+        @SerialName("working_dir") val workingDir: String,
     )
 }

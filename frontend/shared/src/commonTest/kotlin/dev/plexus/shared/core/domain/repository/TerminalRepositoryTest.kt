@@ -50,7 +50,7 @@ class TerminalRepositoryTest {
 
                     override suspend fun createSession(
                         sessionId: String,
-                        workingDir: String?,
+                        workingDir: String,
                     ) = Result.success(testSession)
 
                     override suspend fun deleteSession(sessionId: String) = Result.success(Unit)
@@ -58,7 +58,7 @@ class TerminalRepositoryTest {
 
             assertNotNull(mockRepo)
 
-            val createResult = mockRepo.createSession("new-session")
+            val createResult = mockRepo.createSession("new-session", "~/")
             assertTrue(createResult.isSuccess)
             assertEquals("test-session", createResult.getOrThrow().sessionId)
 
@@ -85,7 +85,7 @@ class TerminalRepositoryTest {
 
                     override suspend fun createSession(
                         sessionId: String,
-                        workingDir: String?,
+                        workingDir: String,
                     ) = Result.success(
                         testSession.copy(sessionId = sessionId),
                     )
@@ -117,13 +117,13 @@ class TerminalRepositoryTest {
 
                     override suspend fun createSession(
                         sessionId: String,
-                        workingDir: String?,
+                        workingDir: String,
                     ): RepositoryResult<Session> = Result.failure(ApiError.HttpError(409, "Conflict", "Session already exists"))
 
                     override suspend fun deleteSession(sessionId: String) = Result.success(Unit)
                 }
 
-            val result = repo.createSession("duplicate-session")
+            val result = repo.createSession("duplicate-session", "~/")
             assertTrue(result.isFailure)
             val error = result.exceptionOrNull()
             assertNotNull(error)
@@ -150,7 +150,7 @@ class TerminalRepositoryTest {
 
                     override suspend fun createSession(
                         sessionId: String,
-                        workingDir: String?,
+                        workingDir: String,
                     ) = Result.success(testSession)
 
                     override suspend fun deleteSession(sessionId: String) = Result.success(Unit)
@@ -179,7 +179,7 @@ class TerminalRepositoryTest {
 
                     override suspend fun createSession(
                         sessionId: String,
-                        workingDir: String?,
+                        workingDir: String,
                     ) = Result.success(testSession)
 
                     override suspend fun deleteSession(sessionId: String): RepositoryResult<Unit> =
@@ -195,9 +195,9 @@ class TerminalRepositoryTest {
         }
 
     @Test
-    fun `createSession - workingDir defaults to null`() =
+    fun `createSession - receives workingDir`() =
         runTest {
-            var capturedWorkingDir: String? = "not-null"
+            var capturedWorkingDir = ""
 
             val repo =
                 object : TerminalRepository {
@@ -215,7 +215,7 @@ class TerminalRepositoryTest {
 
                     override suspend fun createSession(
                         sessionId: String,
-                        workingDir: String?,
+                        workingDir: String,
                     ): RepositoryResult<Session> {
                         capturedWorkingDir = workingDir
                         return Result.success(testSession)
@@ -224,7 +224,7 @@ class TerminalRepositoryTest {
                     override suspend fun deleteSession(sessionId: String) = Result.success(Unit)
                 }
 
-            repo.createSession("test")
-            assertEquals(null, capturedWorkingDir)
+            repo.createSession("test", "~/projects")
+            assertEquals("~/projects", capturedWorkingDir)
         }
 }

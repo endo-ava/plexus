@@ -33,6 +33,7 @@ object PlatformPrefsKeys {
     const val KEY_GATEWAY_API_KEY = "gateway_api_key"
     const val KEY_SELECTED_MODEL = "selected_model"
     const val KEY_LAST_TERMINAL_SESSION = "last_terminal_session"
+    const val KEY_DEFAULT_WORKING_DIR = "default_working_dir"
 }
 
 object PlatformPrefsValues {
@@ -48,4 +49,5 @@ object PlatformPrefsDefaults {
     const val DEFAULT_GATEWAY_API_KEY = ""
     const val DEFAULT_SELECTED_MODEL = ""
     const val DEFAULT_LAST_TERMINAL_SESSION = ""
+    const val DEFAULT_DEFAULT_WORKING_DIR = "~/"
 }

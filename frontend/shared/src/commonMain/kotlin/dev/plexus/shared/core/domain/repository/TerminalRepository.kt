@@ -56,7 +56,7 @@ interface TerminalRepository {
      */
     suspend fun createSession(
         sessionId: String,
-        workingDir: String? = null,
+        workingDir: String,
     ): RepositoryResult<Session>
 
     /**
