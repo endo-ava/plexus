@@ -99,6 +99,7 @@ fun SessionList(
             onCreate = {
                 val name = sessionNameInput.ifBlank { suggestedSessionName }
                 onCreateSession(name)
+                showCreateDialog = false
                 sessionNameInput = ""
             },
             onDismiss = {
