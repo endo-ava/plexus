@@ -237,8 +237,7 @@ def kill_session(session_name: str) -> None:
         session_name: セッション名
 
     Raises:
-        subprocess.CalledProcessError: tmux コマンドが失敗した場合
-        OSError: tmux がインストールされていない、またはタイムアウトした場合
+        OSError: tmux がインストールされていない、タイムアウト、またはセッションが見つからない場合
     """
     try:
         subprocess.run(
@@ -252,6 +251,8 @@ def kill_session(session_name: str) -> None:
     except subprocess.TimeoutExpired as e:
         raise OSError("tmux kill-session timed out") from e
     except subprocess.CalledProcessError as e:
+        if e.returncode == 1:
+            raise OSError("tmux session not found") from e
         raise OSError(f"tmux kill-session failed: {e.stderr.strip()}") from e
 
 

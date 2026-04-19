@@ -90,8 +90,15 @@ async def api_create_session(request: Request) -> JSONResponse:
     await verify_gateway_token(request)
 
     # Parse and validate request body
-    body = await request.json()
-    req = CreateSessionRequest(**body)
+    try:
+        body = await request.json()
+    except Exception:
+        raise HTTPException(status_code=400, detail="invalid_body: Invalid JSON")
+
+    try:
+        req = CreateSessionRequest(**body)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"invalid_request: {e}")
 
     # Validate session name
     if not _validate_session_id(req.session_id):
@@ -126,7 +133,7 @@ async def api_create_session(request: Request) -> JSONResponse:
     return JSONResponse(response_data, status_code=201)
 
 
-async def api_delete_session(request: Request) -> JSONResponse:
+async def api_delete_session(request: Request) -> Response:
     """セッションを削除する。"""
     await verify_gateway_token(request)
 
@@ -257,7 +264,9 @@ async def validate_working_dir(request: Request) -> JSONResponse:
 
     expanded = os.path.expanduser(path)
     if not os.path.isdir(expanded):
-        raise HTTPException(status_code=400, detail=f"invalid_working_dir: {path} does not exist")
+        raise HTTPException(
+            status_code=400, detail=f"invalid_working_dir: {path} does not exist"
+        )
 
     return JSONResponse({"valid": True, "resolved_path": expanded})
 
@@ -271,7 +280,9 @@ def get_terminal_routes() -> list[Route]:
     return [
         Route("/v1/terminal/sessions", get_sessions, methods=["GET"]),
         Route("/v1/terminal/sessions", api_create_session, methods=["POST"]),
-        Route("/v1/terminal/validate-working-dir", validate_working_dir, methods=["GET"]),
+        Route(
+            "/v1/terminal/validate-working-dir", validate_working_dir, methods=["GET"]
+        ),
         Route("/v1/terminal/sessions/{session_id}", get_session, methods=["GET"]),
         Route(
             "/v1/terminal/sessions/{session_id}",
