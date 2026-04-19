@@ -12,6 +12,8 @@ from starlette.exceptions import HTTPException
 from gateway.api.terminal import (
     _build_session_response,
     _extract_preview_lines,
+    api_create_session,
+    api_delete_session,
     get_session,
     get_sessions,
 )
@@ -325,3 +327,179 @@ class TestGetSession:
             assert body["session_id"] == "agent-0001"
             assert "preview_available" in body
             assert "preview_lines" in body
+
+
+# ============================================================================
+# api_create_session エンドポイントのテスト
+# ============================================================================
+
+
+class TestCreateSessionEndpoint:
+    """api_create_session エンドポイントのテスト."""
+
+    @pytest.mark.asyncio
+    async def test_create_session_returns_201(self, mock_request):
+        """セッション作成に成功した場合 201 を返すことを確認する."""
+        mock_request.json = AsyncMock(
+            return_value={"session_id": "agent-0001", "working_dir": None}
+        )
+
+        now = datetime.now(tz=timezone.utc)
+        created_session = Session(name="agent-0001", last_activity=now, created_at=now)
+
+        call_count = 0
+
+        def mock_run_sync(func, *args):
+            nonlocal call_count
+            call_count += 1
+            func_name = getattr(func, "__name__", "")
+            if func_name == "session_exists":
+                return False
+            if func_name == "create_session" or func_name == "<lambda>":
+                return created_session
+            return ("Claude Code", "/root/workspace/plexus")
+
+        with (
+            patch("gateway.api.terminal.verify_gateway_token"),
+            patch("gateway.api.terminal.anyio.to_thread.run_sync") as mock_sync,
+            patch("gateway.api.terminal.TmuxAttachManager") as mock_manager_class,
+        ):
+            mock_sync.side_effect = mock_run_sync
+            mock_manager = MagicMock()
+            mock_manager.capture_snapshot = AsyncMock(return_value=b"output")
+            mock_manager_class.return_value = mock_manager
+
+            response = await api_create_session(mock_request)
+
+        assert response.status_code == 201
+        body = json.loads(response.body.decode())
+        assert body["session_id"] == "agent-0001"
+        assert body["name"] == "agent-0001"
+
+    @pytest.mark.asyncio
+    async def test_create_session_conflict_409(self, mock_request):
+        """既存セッションと同名の場合 409 を返すことを確認する."""
+        mock_request.json = AsyncMock(return_value={"session_id": "agent-0001"})
+
+        with (
+            patch("gateway.api.terminal.verify_gateway_token"),
+            patch("gateway.api.terminal.anyio.to_thread.run_sync") as mock_sync,
+        ):
+            # session_exists → True で重複をシミュレート
+            mock_sync.side_effect = lambda func, *args: True
+
+            with pytest.raises(HTTPException) as exc_info:
+                await api_create_session(mock_request)
+
+        assert exc_info.value.status_code == 409
+
+    @pytest.mark.asyncio
+    async def test_create_session_invalid_name_400(self, mock_request):
+        """不正なセッション名の場合 400 を返すことを確認する."""
+        mock_request.json = AsyncMock(return_value={"session_id": "invalid;name"})
+
+        with (
+            patch("gateway.api.terminal.verify_gateway_token"),
+        ):
+            with pytest.raises(HTTPException) as exc_info:
+                await api_create_session(mock_request)
+
+        assert exc_info.value.status_code == 400
+
+    @pytest.mark.asyncio
+    async def test_create_session_tmux_failure_500(self, mock_request):
+        """tmux セッション作成失敗時に 500 を返すことを確認する."""
+        mock_request.json = AsyncMock(return_value={"session_id": "agent-0001"})
+
+        def mock_run_sync(func, *args):
+            func_name = getattr(func, "__name__", "")
+            if func_name == "session_exists":
+                return False
+            raise OSError("tmux is not installed")
+
+        with (
+            patch("gateway.api.terminal.verify_gateway_token"),
+            patch("gateway.api.terminal.anyio.to_thread.run_sync") as mock_sync,
+        ):
+            mock_sync.side_effect = mock_run_sync
+
+            with pytest.raises(HTTPException) as exc_info:
+                await api_create_session(mock_request)
+
+        assert exc_info.value.status_code == 500
+
+
+# ============================================================================
+# api_delete_session エンドポイントのテスト
+# ============================================================================
+
+
+class TestDeleteSessionEndpoint:
+    """api_delete_session エンドポイントのテスト."""
+
+    @pytest.mark.asyncio
+    async def test_delete_session_returns_204(self, mock_request):
+        """セッション削除に成功した場合 204 を返すことを確認する."""
+        mock_request.path_params = {"session_id": "agent-0001"}
+
+        with (
+            patch("gateway.api.terminal.verify_gateway_token"),
+            patch("gateway.api.terminal.anyio.to_thread.run_sync") as mock_sync,
+        ):
+            mock_sync.side_effect = lambda func, *args: True
+
+            response = await api_delete_session(mock_request)
+
+        assert response.status_code == 204
+
+    @pytest.mark.asyncio
+    async def test_delete_session_not_found_404(self, mock_request):
+        """存在しないセッションの場合 404 を返すことを確認する."""
+        mock_request.path_params = {"session_id": "nonexistent"}
+
+        with (
+            patch("gateway.api.terminal.verify_gateway_token"),
+            patch("gateway.api.terminal.anyio.to_thread.run_sync") as mock_sync,
+        ):
+            # session_exists → False
+            mock_sync.side_effect = lambda func, *args: False
+
+            with pytest.raises(HTTPException) as exc_info:
+                await api_delete_session(mock_request)
+
+        assert exc_info.value.status_code == 404
+
+    @pytest.mark.asyncio
+    async def test_delete_session_invalid_name_400(self, mock_request):
+        """不正なセッション名の場合 400 を返すことを確認する."""
+        mock_request.path_params = {"session_id": "bad;name"}
+
+        with (
+            patch("gateway.api.terminal.verify_gateway_token"),
+        ):
+            with pytest.raises(HTTPException) as exc_info:
+                await api_delete_session(mock_request)
+
+        assert exc_info.value.status_code == 400
+
+    @pytest.mark.asyncio
+    async def test_delete_session_tmux_failure_500(self, mock_request):
+        """tmux セッション削除失敗時に 500 を返すことを確認する."""
+        mock_request.path_params = {"session_id": "agent-0001"}
+
+        def mock_run_sync(func, *args):
+            func_name = getattr(func, "__name__", "")
+            if func_name == "session_exists":
+                return True
+            raise OSError("tmux kill-session failed")
+
+        with (
+            patch("gateway.api.terminal.verify_gateway_token"),
+            patch("gateway.api.terminal.anyio.to_thread.run_sync") as mock_sync,
+        ):
+            mock_sync.side_effect = mock_run_sync
+
+            with pytest.raises(HTTPException) as exc_info:
+                await api_delete_session(mock_request)
+
+        assert exc_info.value.status_code == 500
