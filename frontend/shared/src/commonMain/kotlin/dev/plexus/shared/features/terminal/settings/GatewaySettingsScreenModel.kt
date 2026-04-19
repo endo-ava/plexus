@@ -10,6 +10,12 @@ import dev.plexus.shared.core.platform.isValidUrl
 import dev.plexus.shared.core.platform.normalizeBaseUrl
 import dev.plexus.shared.core.settings.AppTheme
 import dev.plexus.shared.core.settings.ThemeRepository
+import io.ktor.client.HttpClient
+import io.ktor.client.request.get
+import io.ktor.client.request.header
+import io.ktor.client.statement.bodyAsText
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.encodeURLParameter
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
@@ -33,6 +39,7 @@ import kotlinx.coroutines.sync.Mutex
 class GatewaySettingsScreenModel(
     private val preferences: PlatformPreferences,
     private val themeRepository: ThemeRepository,
+    private val httpClient: HttpClient,
 ) : ScreenModel {
     private val saveMutex = Mutex()
 
@@ -56,6 +63,11 @@ class GatewaySettingsScreenModel(
                         PlatformPrefsKeys.KEY_GATEWAY_API_KEY,
                         PlatformPrefsDefaults.DEFAULT_GATEWAY_API_KEY,
                     ),
+                inputDefaultWorkingDir =
+                    preferences.getString(
+                        PlatformPrefsKeys.KEY_DEFAULT_WORKING_DIR,
+                        PlatformPrefsDefaults.DEFAULT_DEFAULT_WORKING_DIR,
+                    ),
             )
         }
 
@@ -76,6 +88,10 @@ class GatewaySettingsScreenModel(
 
     fun onThemeSelected(theme: AppTheme) {
         themeRepository.setTheme(theme)
+    }
+
+    fun onDefaultWorkingDirChange(value: String) {
+        _state.update { it.copy(inputDefaultWorkingDir = value, isSaveSuccess = false) }
     }
 
     fun saveSettings() {
@@ -107,14 +123,25 @@ class GatewaySettingsScreenModel(
             try {
                 val normalizedGatewayUrl = normalizeBaseUrl(current.inputGatewayUrl)
                 val trimmedApiKey = current.inputApiKey.trim()
+                val trimmedWorkingDir = current.inputDefaultWorkingDir.trim()
+
+                if (trimmedWorkingDir.isNotBlank()) {
+                    val validationResult = validateWorkingDir(normalizedGatewayUrl, trimmedApiKey, trimmedWorkingDir)
+                    if (validationResult != null) {
+                        _effect.send(GatewaySettingsEffect.ShowMessage(validationResult))
+                        return@launch
+                    }
+                }
 
                 preferences.putString(PlatformPrefsKeys.KEY_GATEWAY_API_URL, normalizedGatewayUrl)
                 preferences.putString(PlatformPrefsKeys.KEY_GATEWAY_API_KEY, trimmedApiKey)
+                preferences.putString(PlatformPrefsKeys.KEY_DEFAULT_WORKING_DIR, trimmedWorkingDir)
 
                 _state.update {
                     it.copy(
                         inputGatewayUrl = normalizedGatewayUrl,
                         inputApiKey = trimmedApiKey,
+                        inputDefaultWorkingDir = trimmedWorkingDir,
                         isSaveSuccess = true,
                     )
                 }
@@ -128,4 +155,24 @@ class GatewaySettingsScreenModel(
             }
         }
     }
+
+    private suspend fun validateWorkingDir(
+        baseUrl: String,
+        apiKey: String,
+        path: String,
+    ): String? =
+        try {
+            val response =
+                httpClient.get("$baseUrl/api/v1/terminal/validate-working-dir?path=${path.encodeURLParameter()}") {
+                    header("X-API-Key", apiKey)
+                }
+            if (response.status == HttpStatusCode.BadRequest) {
+                val body = response.bodyAsText()
+                "ディレクトリが存在しません: ${body.substringAfter("detail=")}"
+            } else {
+                null
+            }
+        } catch (e: Exception) {
+            null
+        }
 }

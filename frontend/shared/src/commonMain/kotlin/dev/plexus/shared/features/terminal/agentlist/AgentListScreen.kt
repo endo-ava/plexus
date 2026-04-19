@@ -43,6 +43,8 @@ class AgentListScreen(
                     is AgentListEffect.ShowError -> {
                         onShowError(effect.message)
                     }
+                    is AgentListEffect.SessionCreated -> Unit
+                    is AgentListEffect.SessionDeleted -> Unit
                 }
             }
         }
@@ -58,6 +60,11 @@ class AgentListScreen(
                 screenModel.loadSessions()
             },
             onOpenGatewaySettings = onOpenGatewaySettings,
+            isCreatingSession = state.isCreatingSession,
+            suggestedSessionName = screenModel.suggestSessionName(),
+            onCreateSession = { name -> screenModel.createSession(name) },
+            deletingSessionIds = state.deletingSessionIds,
+            onDeleteSession = { sessionId -> screenModel.deleteSession(sessionId) },
             modifier = Modifier,
         )
     }

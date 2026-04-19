@@ -46,4 +46,24 @@ interface TerminalRepository {
      * @return 端末 snapshot
      */
     suspend fun getSnapshot(sessionId: String): RepositoryResult<TerminalSnapshot>
+
+    /**
+     * セッションを作成する
+     *
+     * @param sessionId セッション名
+     * @param workingDir 初期作業ディレクトリ
+     * @return 作成されたセッション
+     */
+    suspend fun createSession(
+        sessionId: String,
+        workingDir: String,
+    ): RepositoryResult<Session>
+
+    /**
+     * セッションを削除する
+     *
+     * @param sessionId セッションID
+     * @return 削除結果
+     */
+    suspend fun deleteSession(sessionId: String): RepositoryResult<Unit>
 }

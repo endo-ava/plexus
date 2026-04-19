@@ -90,6 +90,7 @@ val appModule =
             GatewaySettingsScreenModel(
                 preferences = get(),
                 themeRepository = get(),
+                httpClient = get(),
             )
         }
     }

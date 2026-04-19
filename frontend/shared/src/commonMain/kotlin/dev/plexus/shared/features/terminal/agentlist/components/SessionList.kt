@@ -17,15 +17,24 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
@@ -51,6 +60,11 @@ import dev.plexus.shared.core.ui.theme.monospaceLabelSmall
  * @param onSessionClick セッション選択コールバック
  * @param onRefresh 更新コールバック
  * @param onOpenGatewaySettings Gateway設定を開くコールバック
+ * @param isCreatingSession セッション作成中フラグ
+ * @param suggestedSessionName 提案セッション名
+ * @param onCreateSession セッション作成コールバック（null時は作成ボタン非表示）
+ * @param deletingSessionIds 削除処理中のセッションID一覧
+ * @param onDeleteSession セッション削除コールバック（null時は削除ボタン非表示）
  * @param modifier Modifier
  */
 @Composable
@@ -61,12 +75,39 @@ fun SessionList(
     onSessionClick: (String) -> Unit,
     onRefresh: () -> Unit,
     onOpenGatewaySettings: () -> Unit,
+    isCreatingSession: Boolean = false,
+    suggestedSessionName: String = "session-01",
+    onCreateSession: ((String) -> Unit)? = null,
+    deletingSessionIds: Set<String> = emptySet(),
+    onDeleteSession: ((String) -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
     val dimens = PlexusThemeTokens.dimens
     val shapes = PlexusThemeTokens.shapes
     val extendedColors = PlexusThemeTokens.extendedColors
     val sessionCount = sessions.size
+
+    var showCreateDialog by rememberSaveable { mutableStateOf(false) }
+    var sessionNameInput by rememberSaveable { mutableStateOf("") }
+
+    if (showCreateDialog && onCreateSession != null) {
+        CreateSessionDialog(
+            sessionNameInput = sessionNameInput,
+            onSessionNameChange = { sessionNameInput = it },
+            suggestedName = suggestedSessionName,
+            isCreating = isCreatingSession,
+            onCreate = {
+                val name = sessionNameInput.ifBlank { suggestedSessionName }
+                onCreateSession(name)
+                showCreateDialog = false
+                sessionNameInput = ""
+            },
+            onDismiss = {
+                showCreateDialog = false
+                sessionNameInput = ""
+            },
+        )
+    }
 
     Column(
         modifier =
@@ -112,6 +153,20 @@ fun SessionList(
                         horizontalArrangement = Arrangement.End,
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
+                        if (onCreateSession != null) {
+                            IconButton(
+                                onClick = { showCreateDialog = true },
+                                enabled = !isLoading && !isCreatingSession,
+                                modifier = Modifier.size(dimens.space48),
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Add,
+                                    contentDescription = "Add Session",
+                                    modifier = Modifier.size(dimens.iconSizeMedium),
+                                )
+                            }
+                        }
+
                         IconButton(
                             onClick = onRefresh,
                             enabled = !isLoading,
@@ -170,6 +225,8 @@ fun SessionList(
                 SessionListContent(
                     sessions = items,
                     onSessionClick = onSessionClick,
+                    deletingSessionIds = deletingSessionIds,
+                    onDeleteSession = onDeleteSession,
                     modifier = containerModifier,
                 )
             },
@@ -178,9 +235,63 @@ fun SessionList(
 }
 
 @Composable
+private fun CreateSessionDialog(
+    sessionNameInput: String,
+    onSessionNameChange: (String) -> Unit,
+    suggestedName: String,
+    isCreating: Boolean,
+    onCreate: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = { if (!isCreating) onDismiss() },
+        title = { Text(text = "New Session") },
+        text = {
+            OutlinedTextField(
+                value = sessionNameInput,
+                onValueChange = onSessionNameChange,
+                placeholder = { Text(text = suggestedName) },
+                singleLine = true,
+                enabled = !isCreating,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        },
+        confirmButton = {
+            TextButton(
+                onClick = onCreate,
+                enabled = !isCreating,
+            ) {
+                if (isCreating) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(dimens.iconSize18),
+                        strokeWidth = dimens.borderWidthThin,
+                    )
+                } else {
+                    Text(text = "Create")
+                }
+            }
+        },
+        dismissButton = {
+            TextButton(
+                onClick = onDismiss,
+                enabled = !isCreating,
+            ) {
+                Text(text = "Cancel")
+            }
+        },
+    )
+}
+
+private val dimens
+    @Composable
+    get() = PlexusThemeTokens.dimens
+
+@Composable
 private fun SessionListContent(
     sessions: List<Session>,
     onSessionClick: (String) -> Unit,
+    deletingSessionIds: Set<String> = emptySet(),
+    onDeleteSession: ((String) -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
     val dimens = PlexusThemeTokens.dimens
@@ -198,6 +309,8 @@ private fun SessionListContent(
             SessionListItem(
                 session = session,
                 onClick = { onSessionClick(session.sessionId) },
+                isDeleting = deletingSessionIds.contains(session.sessionId),
+                onDeleteSession = onDeleteSession?.let { { it(session.sessionId) } },
                 modifier = Modifier.fillMaxWidth().padding(horizontal = dimens.space16),
             )
         }

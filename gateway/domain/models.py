@@ -198,6 +198,15 @@ class TerminalSession(BaseModel):
     current_path: str | None = Field(None, description="カレントディレクトリ")
 
 
+class CreateSessionRequest(BaseModel):
+    """セッション作成リクエスト。"""
+
+    session_id: str = Field(
+        ..., min_length=1, max_length=100, description="セッション名"
+    )
+    working_dir: str = Field(..., min_length=1, description="初期作業ディレクトリ")
+
+
 class TerminalSnapshotResponse(BaseModel):
     """端末スナップショットレスポンス。"""
 

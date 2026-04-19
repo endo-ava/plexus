@@ -4,6 +4,7 @@ import dev.plexus.shared.core.domain.repository.ApiError
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.HttpRequestBuilder
+import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.headers
 import io.ktor.client.request.post
@@ -126,6 +127,54 @@ class RepositoryClient(
                 }
             }
         return response.bodyOrThrow<T>()
+    }
+
+    /**
+     * DELETE リクエストを送信する。
+     *
+     * @param T レスポンスの型
+     * @param path API パス（baseUrl からの相対パス）
+     * @param configure リクエストの追加設定
+     * @return レスポンスボディ
+     * @throws ApiError HTTP エラーまたはシリアライズエラー
+     */
+    internal suspend inline fun <reified T> delete(
+        path: String,
+        noinline configure: HttpRequestBuilder.() -> Unit = {},
+    ): T {
+        val response =
+            httpClient.delete("$baseUrl$path") {
+                configureAuth(apiKey)
+                configure()
+            }
+        return response.bodyOrThrow<T>()
+    }
+
+    /**
+     * DELETE リクエストを送信し、レスポンスボディを解析せずにステータス検証のみ行う。
+     *
+     * 204 No Content などレスポンスボディがない場合に使用する。
+     *
+     * @param path API パス（baseUrl からの相対パス）
+     * @param configure リクエストの追加設定
+     * @throws ApiError HTTP エラー
+     */
+    internal suspend fun deleteAndValidate(
+        path: String,
+        configure: HttpRequestBuilder.() -> Unit = {},
+    ) {
+        val response =
+            httpClient.delete("$baseUrl$path") {
+                configureAuth(apiKey)
+                configure()
+            }
+        if (response.status.value !in 200..299) {
+            throw ApiError.HttpError(
+                code = response.status.value,
+                errorMessage = response.status.description,
+                detail = null,
+            )
+        }
     }
 
     /**

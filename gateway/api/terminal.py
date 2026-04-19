@@ -6,13 +6,14 @@ tmux セッション一覧の取得などを提供します。
 import asyncio
 import json
 import logging
+import os
 import re
 from urllib.parse import urlparse
 
 import anyio
 from starlette.exceptions import HTTPException
 from starlette.requests import Request
-from starlette.responses import JSONResponse
+from starlette.responses import JSONResponse, Response
 from starlette.routing import Route, WebSocketRoute
 from starlette.websockets import WebSocket, WebSocketDisconnect
 
@@ -22,9 +23,15 @@ from gateway.config import (
     is_tailscale_hostname,
 )
 from gateway.dependencies import get_config, verify_gateway_token
-from gateway.domain.models import SessionStatus, TerminalSnapshotResponse
+from gateway.domain.models import (
+    CreateSessionRequest,
+    SessionStatus,
+    TerminalSnapshotResponse,
+)
 from gateway.infrastructure.tmux import (
+    create_session,
     get_active_pane_metadata,
+    kill_session,
     list_sessions,
     session_exists,
 )
@@ -76,6 +83,76 @@ async def get_sessions(request: Request) -> JSONResponse:
             "count": len(sessions),
         }
     )
+
+
+async def api_create_session(request: Request) -> JSONResponse:
+    """セッションを作成する。"""
+    await verify_gateway_token(request)
+
+    # Parse and validate request body
+    try:
+        body = await request.json()
+    except Exception:
+        raise HTTPException(status_code=400, detail="invalid_body: Invalid JSON")
+
+    try:
+        req = CreateSessionRequest(**body)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"invalid_request: {e}")
+
+    # Validate session name
+    if not _validate_session_id(req.session_id):
+        raise HTTPException(
+            status_code=400, detail=f"invalid_session_id: {req.session_id}"
+        )
+
+    # Expand ~ and validate path
+    expanded_dir = os.path.expanduser(req.working_dir)
+    if not os.path.isdir(expanded_dir):
+        raise HTTPException(
+            status_code=400,
+            detail=f"invalid_working_dir: {req.working_dir} does not exist",
+        )
+
+    # Check for duplicate
+    if await anyio.to_thread.run_sync(session_exists, req.session_id):
+        raise HTTPException(
+            status_code=409, detail=f"Session already exists: {req.session_id}"
+        )
+
+    # Create tmux session
+    try:
+        tmux_session = await anyio.to_thread.run_sync(
+            lambda: create_session(req.session_id, expanded_dir)
+        )
+    except OSError as e:
+        logger.error("Failed to create session %s: %s", req.session_id, e)
+        raise HTTPException(status_code=500, detail="Failed to create session") from e
+
+    response_data = await _build_session_response(tmux_session.name, tmux_session)
+    return JSONResponse(response_data, status_code=201)
+
+
+async def api_delete_session(request: Request) -> Response:
+    """セッションを削除する。"""
+    await verify_gateway_token(request)
+
+    session_id = request.path_params.get("session_id")
+    if not session_id or not _validate_session_id(session_id):
+        raise HTTPException(status_code=400, detail="Invalid session_id format")
+
+    # Check session exists
+    if not await anyio.to_thread.run_sync(session_exists, session_id):
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    # Kill tmux session
+    try:
+        await anyio.to_thread.run_sync(kill_session, session_id)
+    except OSError as e:
+        logger.error("Failed to delete session %s: %s", session_id, e)
+        raise HTTPException(status_code=500, detail="Failed to delete session") from e
+
+    return Response(status_code=204)
 
 
 async def get_session(request: Request) -> JSONResponse:
@@ -177,6 +254,23 @@ async def get_session_snapshot(request: Request) -> JSONResponse:
     )
 
 
+async def validate_working_dir(request: Request) -> JSONResponse:
+    """作業ディレクトリの有効性を検証する。"""
+    await verify_gateway_token(request)
+
+    path = request.query_params.get("path")
+    if not path:
+        raise HTTPException(status_code=400, detail="path parameter is required")
+
+    expanded = os.path.expanduser(path)
+    if not os.path.isdir(expanded):
+        raise HTTPException(
+            status_code=400, detail=f"invalid_working_dir: {path} does not exist"
+        )
+
+    return JSONResponse({"valid": True, "resolved_path": expanded})
+
+
 def get_terminal_routes() -> list[Route]:
     """Terminal API ルートを取得します。
 
@@ -185,7 +279,16 @@ def get_terminal_routes() -> list[Route]:
     """
     return [
         Route("/v1/terminal/sessions", get_sessions, methods=["GET"]),
+        Route("/v1/terminal/sessions", api_create_session, methods=["POST"]),
+        Route(
+            "/v1/terminal/validate-working-dir", validate_working_dir, methods=["GET"]
+        ),
         Route("/v1/terminal/sessions/{session_id}", get_session, methods=["GET"]),
+        Route(
+            "/v1/terminal/sessions/{session_id}",
+            api_delete_session,
+            methods=["DELETE"],
+        ),
         Route(
             "/v1/terminal/sessions/{session_id}/ws-token",
             issue_ws_token,
