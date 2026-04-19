@@ -1,5 +1,6 @@
 package dev.plexus.shared.features.terminal.settings
 
+import dev.plexus.shared.core.platform.PlatformPrefsDefaults
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -17,6 +18,13 @@ class GatewaySettingsStateTest {
 
         assertEquals("", state.inputGatewayUrl)
         assertEquals("", state.inputApiKey)
+    }
+
+    @Test
+    fun `GatewaySettingsState starts with default working dir`() {
+        val state = GatewaySettingsState()
+
+        assertEquals(PlatformPrefsDefaults.DEFAULT_DEFAULT_WORKING_DIR, state.inputDefaultWorkingDir)
     }
 
     @Test

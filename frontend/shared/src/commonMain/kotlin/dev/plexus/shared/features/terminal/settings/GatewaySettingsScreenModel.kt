@@ -56,6 +56,11 @@ class GatewaySettingsScreenModel(
                         PlatformPrefsKeys.KEY_GATEWAY_API_KEY,
                         PlatformPrefsDefaults.DEFAULT_GATEWAY_API_KEY,
                     ),
+                inputDefaultWorkingDir =
+                    preferences.getString(
+                        PlatformPrefsKeys.KEY_DEFAULT_WORKING_DIR,
+                        PlatformPrefsDefaults.DEFAULT_DEFAULT_WORKING_DIR,
+                    ),
             )
         }
 
@@ -76,6 +81,10 @@ class GatewaySettingsScreenModel(
 
     fun onThemeSelected(theme: AppTheme) {
         themeRepository.setTheme(theme)
+    }
+
+    fun onDefaultWorkingDirChange(value: String) {
+        _state.update { it.copy(inputDefaultWorkingDir = value, isSaveSuccess = false) }
     }
 
     fun saveSettings() {
@@ -110,11 +119,13 @@ class GatewaySettingsScreenModel(
 
                 preferences.putString(PlatformPrefsKeys.KEY_GATEWAY_API_URL, normalizedGatewayUrl)
                 preferences.putString(PlatformPrefsKeys.KEY_GATEWAY_API_KEY, trimmedApiKey)
+                preferences.putString(PlatformPrefsKeys.KEY_DEFAULT_WORKING_DIR, current.inputDefaultWorkingDir.trim())
 
                 _state.update {
                     it.copy(
                         inputGatewayUrl = normalizedGatewayUrl,
                         inputApiKey = trimmedApiKey,
+                        inputDefaultWorkingDir = current.inputDefaultWorkingDir.trim(),
                         isSaveSuccess = true,
                     )
                 }

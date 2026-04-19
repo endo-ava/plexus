@@ -100,6 +100,8 @@ class GatewaySettingsScreen(
                     onGatewayUrlChange = screenModel::onGatewayUrlChange,
                     apiKey = state.inputApiKey,
                     onApiKeyChange = screenModel::onApiKeyChange,
+                    defaultWorkingDir = state.inputDefaultWorkingDir,
+                    onDefaultWorkingDirChange = screenModel::onDefaultWorkingDirChange,
                     onSave = screenModel::saveSettings,
                     isSaving = state.isSaving,
                     isSaveSuccess = state.isSaveSuccess,
@@ -158,6 +160,8 @@ private fun GatewaySettingsContent(
     onGatewayUrlChange: (String) -> Unit,
     apiKey: String,
     onApiKeyChange: (String) -> Unit,
+    defaultWorkingDir: String,
+    onDefaultWorkingDirChange: (String) -> Unit,
     onSave: () -> Unit,
     isSaving: Boolean,
     isSaveSuccess: Boolean = false,
@@ -224,6 +228,36 @@ private fun GatewaySettingsContent(
                 modifier = Modifier.fillMaxWidth(),
                 showContentDescription = "Show token",
                 hideContentDescription = "Hide token",
+            )
+
+            Spacer(modifier = Modifier.height(dimens.space12))
+
+            OutlinedTextField(
+                value = defaultWorkingDir,
+                onValueChange = onDefaultWorkingDirChange,
+                label = {
+                    Text(
+                        "Default Working Directory",
+                        style = MaterialTheme.typography.monospaceLabelSmall,
+                    )
+                },
+                placeholder = {
+                    Text(
+                        "~/",
+                        style = MaterialTheme.typography.monospaceLabelSmall,
+                    )
+                },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                textStyle = MaterialTheme.typography.monospaceBody,
+                shape = PlexusThemeTokens.shapes.radiusMd,
+                colors =
+                    OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
+                        focusedBorderColor = PlexusThemeTokens.extendedColors.success.copy(alpha = 0.5f),
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
+                    ),
             )
 
             Spacer(modifier = Modifier.height(dimens.space16))

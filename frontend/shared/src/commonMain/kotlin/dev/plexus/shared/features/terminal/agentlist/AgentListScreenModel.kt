@@ -5,6 +5,7 @@ import cafe.adriel.voyager.core.model.screenModelScope
 import dev.plexus.shared.core.domain.model.terminal.Session
 import dev.plexus.shared.core.domain.repository.TerminalRepository
 import dev.plexus.shared.core.platform.PlatformPreferences
+import dev.plexus.shared.core.platform.PlatformPrefsDefaults
 import dev.plexus.shared.core.platform.PlatformPrefsKeys
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
@@ -72,10 +73,15 @@ class AgentListScreenModel(
     }
 
     fun createSession(sessionId: String) {
+        val workingDir =
+            preferences.getString(
+                PlatformPrefsKeys.KEY_DEFAULT_WORKING_DIR,
+                PlatformPrefsDefaults.DEFAULT_DEFAULT_WORKING_DIR,
+            )
         screenModelScope.launch {
             _state.update { it.copy(isCreatingSession = true) }
             terminalRepository
-                .createSession(sessionId)
+                .createSession(sessionId, workingDir)
                 .onSuccess { session ->
                     _state.update { it.copy(isCreatingSession = false) }
                     _effect.send(AgentListEffect.SessionCreated(session))
