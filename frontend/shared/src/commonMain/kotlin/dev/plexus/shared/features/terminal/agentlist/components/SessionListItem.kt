@@ -5,9 +5,10 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -23,10 +24,18 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -60,12 +69,17 @@ internal fun sessionHeaderPath(session: Session): String? = session.currentPath?
  *
  * @param session セッション情報
  * @param onClick クリックコールバック
+ * @param isDeleting 削除処理中かどうか
+ * @param onDeleteSession 削除コールバック（null時はコンテキストメニュー非表示）
  * @param modifier Modifier
  */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun SessionListItem(
     session: Session,
     onClick: () -> Unit,
+    isDeleting: Boolean = false,
+    onDeleteSession: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
     val dimens = PlexusThemeTokens.dimens
@@ -77,6 +91,8 @@ fun SessionListItem(
     val cardBackgroundColor = MaterialTheme.colorScheme.surfaceContainer
     val sessionIdColor = extendedColors.success
     val previewAccentColor = extendedColors.success.copy(alpha = 0.55f)
+    var showMenu by remember { mutableStateOf(false) }
+    var showConfirmDialog by remember { mutableStateOf(false) }
     val cardModifier =
         modifier
             .testTagResourceId(TerminalTestTags.SESSION_ITEM)
@@ -87,8 +103,16 @@ fun SessionListItem(
                 width = dimens.borderWidthThin,
                 color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f),
                 shape = shapes.radiusLg,
-            ).clickable(onClick = onClick)
-            .padding(horizontal = dimens.space16, vertical = dimens.space16)
+            ).then(
+                if (isDeleting) {
+                    Modifier.alpha(0.5f)
+                } else {
+                    Modifier.combinedClickable(
+                        onClick = onClick,
+                        onLongClick = { if (onDeleteSession != null) showMenu = true },
+                    )
+                },
+            ).padding(horizontal = dimens.space16, vertical = dimens.space16)
     val previewBoxModifier =
         Modifier
             .testTagResourceId(TerminalTestTags.SESSION_PREVIEW)
@@ -231,6 +255,42 @@ fun SessionListItem(
                 }
             }
         }
+
+        DropdownMenu(
+            expanded = showMenu,
+            onDismissRequest = { showMenu = false },
+        ) {
+            DropdownMenuItem(
+                text = { Text("削除") },
+                onClick = {
+                    showMenu = false
+                    showConfirmDialog = true
+                },
+            )
+        }
+    }
+
+    if (showConfirmDialog && onDeleteSession != null) {
+        AlertDialog(
+            onDismissRequest = { showConfirmDialog = false },
+            title = { Text("セッション削除") },
+            text = { Text("「${session.sessionId}」を削除しますか？") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showConfirmDialog = false
+                        onDeleteSession()
+                    },
+                ) {
+                    Text("削除")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showConfirmDialog = false }) {
+                    Text("キャンセル")
+                }
+            },
+        )
     }
 }
 
