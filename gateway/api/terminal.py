@@ -247,6 +247,21 @@ async def get_session_snapshot(request: Request) -> JSONResponse:
     )
 
 
+async def validate_working_dir(request: Request) -> JSONResponse:
+    """作業ディレクトリの有効性を検証する。"""
+    await verify_gateway_token(request)
+
+    path = request.query_params.get("path")
+    if not path:
+        raise HTTPException(status_code=400, detail="path parameter is required")
+
+    expanded = os.path.expanduser(path)
+    if not os.path.isdir(expanded):
+        raise HTTPException(status_code=400, detail=f"invalid_working_dir: {path} does not exist")
+
+    return JSONResponse({"valid": True, "resolved_path": expanded})
+
+
 def get_terminal_routes() -> list[Route]:
     """Terminal API ルートを取得します。
 
@@ -256,6 +271,7 @@ def get_terminal_routes() -> list[Route]:
     return [
         Route("/v1/terminal/sessions", get_sessions, methods=["GET"]),
         Route("/v1/terminal/sessions", api_create_session, methods=["POST"]),
+        Route("/v1/terminal/validate-working-dir", validate_working_dir, methods=["GET"]),
         Route("/v1/terminal/sessions/{session_id}", get_session, methods=["GET"]),
         Route(
             "/v1/terminal/sessions/{session_id}",
