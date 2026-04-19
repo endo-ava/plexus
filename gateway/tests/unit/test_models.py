@@ -379,19 +379,26 @@ class TestCreateSessionRequest:
         assert request.working_dir == working_dir
 
     def test_create_session_request_without_working_dir(self):
-        """working_dirが未指定の場合にNoneになることを確認する。"""
-        # Arrange & Act
-        request = CreateSessionRequest(session_id="agent-0001")
+        """working_dirが未指定の場合にValidationErrorになることを確認する。"""
+        # Arrange & Act & Assert
+        with pytest.raises(ValidationError) as exc_info:
+            CreateSessionRequest(session_id="agent-0001")
 
-        # Assert
-        assert request.session_id == "agent-0001"
-        assert request.working_dir is None
+        assert "working_dir" in str(exc_info.value).lower()
+
+    def test_create_session_request_empty_working_dir(self):
+        """working_dirが空文字の場合にValidationErrorになることを確認する。"""
+        # Arrange & Act & Assert
+        with pytest.raises(ValidationError) as exc_info:
+            CreateSessionRequest(session_id="agent-0001", working_dir="")
+
+        assert "at least 1 character" in str(exc_info.value).lower()
 
     def test_create_session_request_missing_session_id(self):
         """session_idが欠落している場合にValidationErrorになることを確認する。"""
         # Arrange & Act & Assert
         with pytest.raises(ValidationError) as exc_info:
-            CreateSessionRequest()
+            CreateSessionRequest(working_dir="/tmp")
 
         assert "session_id" in str(exc_info.value).lower()
 
@@ -399,7 +406,7 @@ class TestCreateSessionRequest:
         """session_idが空文字の場合にValidationErrorになることを確認する。"""
         # Arrange & Act & Assert
         with pytest.raises(ValidationError) as exc_info:
-            CreateSessionRequest(session_id="")
+            CreateSessionRequest(session_id="", working_dir="/tmp")
 
         assert "at least 1 character" in str(exc_info.value).lower()
 
@@ -410,6 +417,6 @@ class TestCreateSessionRequest:
 
         # Act & Assert
         with pytest.raises(ValidationError) as exc_info:
-            CreateSessionRequest(session_id=long_id)
+            CreateSessionRequest(session_id=long_id, working_dir="/tmp")
 
         assert "at most 100 character" in str(exc_info.value).lower()

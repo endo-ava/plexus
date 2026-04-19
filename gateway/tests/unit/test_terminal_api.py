@@ -341,7 +341,7 @@ class TestCreateSessionEndpoint:
     async def test_create_session_returns_201(self, mock_request):
         """セッション作成に成功した場合 201 を返すことを確認する."""
         mock_request.json = AsyncMock(
-            return_value={"session_id": "agent-0001", "working_dir": None}
+            return_value={"session_id": "agent-0001", "working_dir": "/tmp"}
         )
 
         now = datetime.now(tz=timezone.utc)
@@ -379,7 +379,9 @@ class TestCreateSessionEndpoint:
     @pytest.mark.asyncio
     async def test_create_session_conflict_409(self, mock_request):
         """既存セッションと同名の場合 409 を返すことを確認する."""
-        mock_request.json = AsyncMock(return_value={"session_id": "agent-0001"})
+        mock_request.json = AsyncMock(
+            return_value={"session_id": "agent-0001", "working_dir": "/tmp"}
+        )
 
         with (
             patch("gateway.api.terminal.verify_gateway_token"),
@@ -396,7 +398,9 @@ class TestCreateSessionEndpoint:
     @pytest.mark.asyncio
     async def test_create_session_invalid_name_400(self, mock_request):
         """不正なセッション名の場合 400 を返すことを確認する."""
-        mock_request.json = AsyncMock(return_value={"session_id": "invalid;name"})
+        mock_request.json = AsyncMock(
+            return_value={"session_id": "invalid;name", "working_dir": "/tmp"}
+        )
 
         with (
             patch("gateway.api.terminal.verify_gateway_token"),
@@ -409,7 +413,9 @@ class TestCreateSessionEndpoint:
     @pytest.mark.asyncio
     async def test_create_session_tmux_failure_500(self, mock_request):
         """tmux セッション作成失敗時に 500 を返すことを確認する."""
-        mock_request.json = AsyncMock(return_value={"session_id": "agent-0001"})
+        mock_request.json = AsyncMock(
+            return_value={"session_id": "agent-0001", "working_dir": "/tmp"}
+        )
 
         def mock_run_sync(func, *args):
             func_name = getattr(func, "__name__", "")
@@ -427,6 +433,25 @@ class TestCreateSessionEndpoint:
                 await api_create_session(mock_request)
 
         assert exc_info.value.status_code == 500
+
+    @pytest.mark.asyncio
+    async def test_create_session_invalid_working_dir_400(self, mock_request):
+        """存在しない作業ディレクトリの場合 400 を返すことを確認する."""
+        mock_request.json = AsyncMock(
+            return_value={
+                "session_id": "agent-0001",
+                "working_dir": "/nonexistent/path",
+            }
+        )
+
+        with (
+            patch("gateway.api.terminal.verify_gateway_token"),
+        ):
+            with pytest.raises(HTTPException) as exc_info:
+                await api_create_session(mock_request)
+
+        assert exc_info.value.status_code == 400
+        assert "invalid_working_dir" in exc_info.value.detail
 
 
 # ============================================================================

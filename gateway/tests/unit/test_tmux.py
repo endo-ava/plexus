@@ -603,11 +603,15 @@ class TestCreateSession:
             mock_list.return_value = [expected_session]
 
             # Act: セッションを作成
-            session = create_session("agent-0001")
+            session = create_session("agent-0001", working_dir="/tmp")
 
             # Assert: 作成されたセッションが返されること
             assert session.name == "agent-0001"
             assert session is expected_session
+            # Assert: -c /tmp がコマンドに含まれていること
+            call_args = mock_run.call_args
+            assert "-c" in call_args.args[0]
+            assert "/tmp" in call_args.args[0]
 
     def test_create_session_with_working_dir(self) -> None:
         """working_dir 指定時に -c オプションが含まれることを検証します。"""
@@ -642,7 +646,7 @@ class TestCreateSession:
         with patch("subprocess.run", side_effect=FileNotFoundError):
             # Act & Assert: OSError が発生すること
             with pytest.raises(OSError, match="tmux is not installed"):
-                create_session("agent-0001")
+                create_session("agent-0001", working_dir="/tmp")
 
     def test_create_session_timeout(self) -> None:
         """tmux コマンドがタイムアウトした場合に OSError が発生することを検証します。"""
@@ -654,7 +658,7 @@ class TestCreateSession:
 
             # Act & Assert: OSError が発生すること
             with pytest.raises(OSError, match="tmux new-session timed out"):
-                create_session("agent-0001")
+                create_session("agent-0001", working_dir="/tmp")
 
     def test_create_session_command_fails(self) -> None:
         """tmux コマンドが失敗した場合に CalledProcessError が伝播することを検証します。"""
@@ -666,7 +670,7 @@ class TestCreateSession:
 
             # Act & Assert: CalledProcessError が伝播すること
             with pytest.raises(subprocess.CalledProcessError):
-                create_session("agent-0001")
+                create_session("agent-0001", working_dir="/tmp")
 
     def test_create_session_not_found_after_creation(self) -> None:
         """セッション作成後に list_sessions で見つからない場合に SessionNotFoundError が発生することを検証します。"""
@@ -680,7 +684,7 @@ class TestCreateSession:
 
             # Act & Assert: SessionNotFoundError が発生すること
             with pytest.raises(SessionNotFoundError):
-                create_session("agent-0001")
+                create_session("agent-0001", working_dir="/tmp")
 
 
 class TestKillSession:

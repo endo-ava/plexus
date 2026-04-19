@@ -179,12 +179,12 @@ def session_exists(session_name: str) -> bool:
         return False
 
 
-def create_session(session_name: str, working_dir: str | None = None) -> Session:
+def create_session(session_name: str, working_dir: str) -> Session:
     """tmux セッションを作成します。
 
     Args:
         session_name: セッション名
-        working_dir: セッションの作業ディレクトリ（省略時はtmuxのデフォルト）
+        working_dir: セッションの作業ディレクトリ
 
     Returns:
         作成されたセッション情報
@@ -195,9 +195,7 @@ def create_session(session_name: str, working_dir: str | None = None) -> Session
         OSError: tmux がインストールされていない、またはタイムアウトした場合
     """
     try:
-        cmd: list[str] = ["tmux", "new-session", "-d", "-s", session_name]
-        if working_dir is not None:
-            cmd.extend(["-c", working_dir])
+        cmd: list[str] = ["tmux", "new-session", "-d", "-s", session_name, "-c", working_dir]
         subprocess.run(
             cmd,
             capture_output=True,

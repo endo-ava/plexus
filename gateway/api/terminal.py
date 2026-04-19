@@ -6,6 +6,7 @@ tmux セッション一覧の取得などを提供します。
 import asyncio
 import json
 import logging
+import os
 import re
 from urllib.parse import urlparse
 
@@ -98,6 +99,14 @@ async def api_create_session(request: Request) -> JSONResponse:
             status_code=400, detail=f"invalid_session_id: {req.session_id}"
         )
 
+    # Expand ~ and validate path
+    expanded_dir = os.path.expanduser(req.working_dir)
+    if not os.path.isdir(expanded_dir):
+        raise HTTPException(
+            status_code=400,
+            detail=f"invalid_working_dir: {req.working_dir} does not exist",
+        )
+
     # Check for duplicate
     if await anyio.to_thread.run_sync(session_exists, req.session_id):
         raise HTTPException(
@@ -107,7 +116,7 @@ async def api_create_session(request: Request) -> JSONResponse:
     # Create tmux session
     try:
         tmux_session = await anyio.to_thread.run_sync(
-            lambda: create_session(req.session_id, req.working_dir)
+            lambda: create_session(req.session_id, expanded_dir)
         )
     except OSError as e:
         logger.error("Failed to create session %s: %s", req.session_id, e)

@@ -204,7 +204,7 @@ class CreateSessionRequest(BaseModel):
     session_id: str = Field(
         ..., min_length=1, max_length=100, description="セッション名"
     )
-    working_dir: str | None = Field(None, description="初期作業ディレクトリ")
+    working_dir: str = Field(..., min_length=1, description="初期作業ディレクトリ")
 
 
 class TerminalSnapshotResponse(BaseModel):
