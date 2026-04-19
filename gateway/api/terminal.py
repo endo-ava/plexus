@@ -13,7 +13,7 @@ from urllib.parse import urlparse
 import anyio
 from starlette.exceptions import HTTPException
 from starlette.requests import Request
-from starlette.responses import JSONResponse
+from starlette.responses import JSONResponse, Response
 from starlette.routing import Route, WebSocketRoute
 from starlette.websockets import WebSocket, WebSocketDisconnect
 
@@ -145,7 +145,7 @@ async def api_delete_session(request: Request) -> JSONResponse:
         logger.error("Failed to delete session %s: %s", session_id, e)
         raise HTTPException(status_code=500, detail="Failed to delete session") from e
 
-    return JSONResponse(None, status_code=204)
+    return Response(status_code=204)
 
 
 async def get_session(request: Request) -> JSONResponse:

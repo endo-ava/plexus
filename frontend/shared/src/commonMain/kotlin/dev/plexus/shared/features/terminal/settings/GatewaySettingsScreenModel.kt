@@ -15,7 +15,7 @@ import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
-import io.ktor.http.encodeURLPathPart
+import io.ktor.http.encodeURLParameter
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
@@ -163,12 +163,12 @@ class GatewaySettingsScreenModel(
     ): String? =
         try {
             val response =
-                httpClient.get("$baseUrl/api/v1/terminal/validate-working-dir?path=${path.encodeURLPathPart()}") {
+                httpClient.get("$baseUrl/api/v1/terminal/validate-working-dir?path=${path.encodeURLParameter()}") {
                     header("X-API-Key", apiKey)
                 }
             if (response.status == HttpStatusCode.BadRequest) {
                 val body = response.bodyAsText()
-                "ディレクトリが存在しません: $path"
+                "ディレクトリが存在しません: ${body.substringAfter("detail=")}"
             } else {
                 null
             }

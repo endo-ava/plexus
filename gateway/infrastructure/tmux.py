@@ -195,10 +195,22 @@ def create_session(session_name: str, working_dir: str) -> Session:
         OSError: tmux がインストールされていない、またはタイムアウトした場合
     """
     try:
-        cmd: list[str] = ["tmux", "new-session", "-d", "-s", session_name, "-c", working_dir]
-        subprocess.run(
+        cmd: list[str] = [
+            "tmux",
+            "new-session",
+            "-d",
+            "-s",
+            session_name,
+            "-c",
+            working_dir,
+            "-P",
+            "-F",
+            "#{session_name}\t#{session_activity}\t#{session_created}",
+        ]
+        result = subprocess.run(
             cmd,
             capture_output=True,
+            text=True,
             check=True,
             timeout=TMUX_COMMAND_TIMEOUT_SECONDS,
         )
@@ -207,12 +219,15 @@ def create_session(session_name: str, working_dir: str) -> Session:
     except subprocess.TimeoutExpired as e:
         raise OSError("tmux new-session timed out") from e
 
-    sessions = list_sessions()
-    for session in sessions:
-        if session.name == session_name:
-            return session
-
-    raise SessionNotFoundError(f"Session '{session_name}' not found after creation")
+    parts = result.stdout.strip().split("\t")
+    if len(parts) != 3:
+        raise SessionNotFoundError(f"Unexpected tmux output: {result.stdout!r}")
+    name, activity_str, created_str = parts
+    return Session(
+        name=name,
+        last_activity=_parse_tmux_timestamp(activity_str),
+        created_at=_parse_tmux_timestamp(created_str),
+    )
 
 
 def kill_session(session_name: str) -> None:
@@ -236,6 +251,8 @@ def kill_session(session_name: str) -> None:
         raise OSError("tmux is not installed") from e
     except subprocess.TimeoutExpired as e:
         raise OSError("tmux kill-session timed out") from e
+    except subprocess.CalledProcessError as e:
+        raise OSError(f"tmux kill-session failed: {e.stderr.strip()}") from e
 
 
 def get_active_pane_metadata(session_name: str) -> tuple[str | None, str | None]:

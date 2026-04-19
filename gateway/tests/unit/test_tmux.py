@@ -585,29 +585,19 @@ class TestCreateSession:
 
     def test_create_session_success(self) -> None:
         """セッション作成に成功し、Session オブジェクトが返されることを検証します。"""
-        # Arrange: subprocess.run が成功し、list_sessions がセッションを返す
-        expected_session = Session(
-            name="agent-0001",
-            last_activity=__import__("datetime").datetime(
-                2025, 2, 8, 12, 0, 0, tzinfo=__import__("datetime").timezone.utc
-            ),
-            created_at=__import__("datetime").datetime(
-                2025, 2, 8, 10, 0, 0, tzinfo=__import__("datetime").timezone.utc
-            ),
-        )
-        with (
-            patch("subprocess.run") as mock_run,
-            patch("gateway.infrastructure.tmux.list_sessions") as mock_list,
-        ):
-            mock_run.return_value = Mock(returncode=0)
-            mock_list.return_value = [expected_session]
+        with patch("subprocess.run") as mock_run:
+            result = Mock()
+            result.returncode = 0
+            result.stdout = "agent-0001\t2025-02-08T12:00:00\t2025-02-08T10:00:00"
+            mock_run.return_value = result
 
             # Act: セッションを作成
             session = create_session("agent-0001", working_dir="/tmp")
 
             # Assert: 作成されたセッションが返されること
             assert session.name == "agent-0001"
-            assert session is expected_session
+            assert session.last_activity.hour == 12
+            assert session.created_at.hour == 10
             # Assert: -c /tmp がコマンドに含まれていること
             call_args = mock_run.call_args
             assert "-c" in call_args.args[0]
@@ -615,22 +605,11 @@ class TestCreateSession:
 
     def test_create_session_with_working_dir(self) -> None:
         """working_dir 指定時に -c オプションが含まれることを検証します。"""
-        # Arrange: working_dir を指定してセッション作成
-        expected_session = Session(
-            name="agent-0001",
-            last_activity=__import__("datetime").datetime(
-                2025, 2, 8, 12, 0, 0, tzinfo=__import__("datetime").timezone.utc
-            ),
-            created_at=__import__("datetime").datetime(
-                2025, 2, 8, 10, 0, 0, tzinfo=__import__("datetime").timezone.utc
-            ),
-        )
-        with (
-            patch("subprocess.run") as mock_run,
-            patch("gateway.infrastructure.tmux.list_sessions") as mock_list,
-        ):
-            mock_run.return_value = Mock(returncode=0)
-            mock_list.return_value = [expected_session]
+        with patch("subprocess.run") as mock_run:
+            result = Mock()
+            result.returncode = 0
+            result.stdout = "agent-0001\t2025-02-08T12:00:00\t2025-02-08T10:00:00"
+            mock_run.return_value = result
 
             # Act: working_dir を指定してセッションを作成
             create_session("agent-0001", working_dir="/tmp")
@@ -662,7 +641,6 @@ class TestCreateSession:
 
     def test_create_session_command_fails(self) -> None:
         """tmux コマンドが失敗した場合に CalledProcessError が伝播することを検証します。"""
-        # Arrange: subprocess.run が CalledProcessError を発生させる
         with patch("subprocess.run") as mock_run:
             mock_run.side_effect = subprocess.CalledProcessError(
                 returncode=1, cmd=["tmux", "new-session", "-d", "-s", "agent-0001"]
@@ -673,14 +651,12 @@ class TestCreateSession:
                 create_session("agent-0001", working_dir="/tmp")
 
     def test_create_session_not_found_after_creation(self) -> None:
-        """セッション作成後に list_sessions で見つからない場合に SessionNotFoundError が発生することを検証します。"""
-        # Arrange: subprocess.run は成功するが list_sessions が空リストを返す
-        with (
-            patch("subprocess.run") as mock_run,
-            patch("gateway.infrastructure.tmux.list_sessions") as mock_list,
-        ):
-            mock_run.return_value = Mock(returncode=0)
-            mock_list.return_value = []
+        """tmux 出力が不正な場合に SessionNotFoundError が発生することを検証します。"""
+        with patch("subprocess.run") as mock_run:
+            result = Mock()
+            result.returncode = 0
+            result.stdout = "invalid-output"
+            mock_run.return_value = result
 
             # Act & Assert: SessionNotFoundError が発生すること
             with pytest.raises(SessionNotFoundError):
