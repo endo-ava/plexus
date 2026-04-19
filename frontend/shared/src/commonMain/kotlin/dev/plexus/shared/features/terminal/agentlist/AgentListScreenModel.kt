@@ -2,6 +2,7 @@ package dev.plexus.shared.features.terminal.agentlist
 
 import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
+import dev.plexus.shared.core.domain.model.terminal.Session
 import dev.plexus.shared.core.domain.repository.TerminalRepository
 import dev.plexus.shared.core.platform.PlatformPreferences
 import dev.plexus.shared.core.platform.PlatformPrefsKeys
@@ -69,4 +70,54 @@ class AgentListScreenModel(
     fun saveLastSession(sessionId: String) {
         preferences.putString(PlatformPrefsKeys.KEY_LAST_TERMINAL_SESSION, sessionId)
     }
+
+    fun createSession(sessionId: String) {
+        screenModelScope.launch {
+            _state.update { it.copy(isCreatingSession = true) }
+            terminalRepository
+                .createSession(sessionId)
+                .onSuccess { session ->
+                    _state.update { it.copy(isCreatingSession = false) }
+                    _effect.send(AgentListEffect.SessionCreated(session))
+                    loadSessions()
+                }.onFailure { error ->
+                    _state.update { it.copy(isCreatingSession = false) }
+                    val message = "セッション作成に失敗: ${error.message}"
+                    _effect.send(AgentListEffect.ShowError(message))
+                }
+        }
+    }
+
+    fun deleteSession(sessionId: String) {
+        screenModelScope.launch {
+            _state.update { it.copy(deletingSessionIds = it.deletingSessionIds + sessionId) }
+            terminalRepository
+                .deleteSession(sessionId)
+                .onSuccess {
+                    _state.update { it.copy(deletingSessionIds = it.deletingSessionIds - sessionId) }
+                    _effect.send(AgentListEffect.SessionDeleted(sessionId))
+                    loadSessions()
+                }.onFailure { error ->
+                    _state.update { it.copy(deletingSessionIds = it.deletingSessionIds - sessionId) }
+                    val message = "セッション削除に失敗: ${error.message}"
+                    _effect.send(AgentListEffect.ShowError(message))
+                }
+        }
+    }
+
+    fun suggestSessionName(): String {
+        val regex = Regex("^session-(\\d+)$")
+        val maxNum =
+            sessionsInState()
+                .mapNotNull {
+                    regex
+                        .matchEntire(it.sessionId)
+                        ?.groupValues
+                        ?.get(1)
+                        ?.toIntOrNull()
+                }.maxOrNull() ?: 0
+        return "session-${(maxNum + 1).toString().padStart(2, '0')}"
+    }
+
+    private fun sessionsInState(): List<Session> = _state.value.sessions
 }
