@@ -12,6 +12,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
@@ -84,9 +85,38 @@ class TerminalRepositoryImpl(
             repositoryClient.get<TerminalSnapshot>("/api/v1/terminal/sessions/$encodedSessionId/snapshot")
         }
 
+    override suspend fun createSession(
+        sessionId: String,
+        workingDir: String?,
+    ): RepositoryResult<Session> =
+        wrapRepositoryOperation {
+            val session =
+                repositoryClient.post<Session>(
+                    "/api/v1/terminal/sessions",
+                    body = CreateSessionRequest(sessionId, workingDir),
+                )
+            sessionsCache.clear()
+            sessionCache.clear()
+            session
+        }
+
+    override suspend fun deleteSession(sessionId: String): RepositoryResult<Unit> =
+        wrapRepositoryOperation {
+            val encodedSessionId = sessionId.encodeURLPathPart()
+            repositoryClient.deleteAndValidate("/api/v1/terminal/sessions/$encodedSessionId")
+            sessionsCache.clear()
+            sessionCache.clear()
+        }
+
     @Serializable
     private data class SessionListResponse(
         val sessions: List<Session>,
         val count: Int,
+    )
+
+    @Serializable
+    private data class CreateSessionRequest(
+        @SerialName("session_id") val sessionId: String,
+        @SerialName("working_dir") val workingDir: String? = null,
     )
 }
