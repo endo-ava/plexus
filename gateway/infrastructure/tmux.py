@@ -13,6 +13,10 @@ logger = logging.getLogger(__name__)
 TMUX_COMMAND_TIMEOUT_SECONDS = 5
 
 
+class SessionNotFoundError(Exception):
+    """tmux セッションが見つからない場合のエラー。"""
+
+
 @dataclass(frozen=True, slots=True)
 class Session:
     """tmux セッション情報。
@@ -175,6 +179,67 @@ def session_exists(session_name: str) -> bool:
         return False
 
 
+def create_session(session_name: str, working_dir: str | None = None) -> Session:
+    """tmux セッションを作成します。
+
+    Args:
+        session_name: セッション名
+        working_dir: セッションの作業ディレクトリ（省略時はtmuxのデフォルト）
+
+    Returns:
+        作成されたセッション情報
+
+    Raises:
+        SessionNotFoundError: セッション作成後に list_sessions で見つからない場合
+        subprocess.CalledProcessError: tmux コマンドが失敗した場合
+        OSError: tmux がインストールされていない、またはタイムアウトした場合
+    """
+    try:
+        cmd: list[str] = ["tmux", "new-session", "-d", "-s", session_name]
+        if working_dir is not None:
+            cmd.extend(["-c", working_dir])
+        subprocess.run(
+            cmd,
+            capture_output=True,
+            check=True,
+            timeout=TMUX_COMMAND_TIMEOUT_SECONDS,
+        )
+    except FileNotFoundError as e:
+        raise OSError("tmux is not installed") from e
+    except subprocess.TimeoutExpired as e:
+        raise OSError("tmux new-session timed out") from e
+
+    sessions = list_sessions()
+    for session in sessions:
+        if session.name == session_name:
+            return session
+
+    raise SessionNotFoundError(f"Session '{session_name}' not found after creation")
+
+
+def kill_session(session_name: str) -> None:
+    """tmux セッションを削除します。
+
+    Args:
+        session_name: セッション名
+
+    Raises:
+        subprocess.CalledProcessError: tmux コマンドが失敗した場合
+        OSError: tmux がインストールされていない、またはタイムアウトした場合
+    """
+    try:
+        subprocess.run(
+            ["tmux", "kill-session", "-t", f"={session_name}"],
+            capture_output=True,
+            check=True,
+            timeout=TMUX_COMMAND_TIMEOUT_SECONDS,
+        )
+    except FileNotFoundError as e:
+        raise OSError("tmux is not installed") from e
+    except subprocess.TimeoutExpired as e:
+        raise OSError("tmux kill-session timed out") from e
+
+
 def get_active_pane_metadata(session_name: str) -> tuple[str | None, str | None]:
     """指定セッションのアクティブ pane から title と current_path を取得する。"""
     try:
@@ -192,7 +257,11 @@ def get_active_pane_metadata(session_name: str) -> tuple[str | None, str | None]
             check=True,
             timeout=TMUX_COMMAND_TIMEOUT_SECONDS,
         )
-    except (subprocess.CalledProcessError, FileNotFoundError, subprocess.TimeoutExpired) as e:
+    except (
+        subprocess.CalledProcessError,
+        FileNotFoundError,
+        subprocess.TimeoutExpired,
+    ) as e:
         logger.debug("Failed to list tmux panes for %s: %s", session_name, e)
         return (None, None)
 
