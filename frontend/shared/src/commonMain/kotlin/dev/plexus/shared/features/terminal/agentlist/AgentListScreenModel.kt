@@ -113,7 +113,7 @@ class AgentListScreenModel(
 
     fun suggestSessionName(): String {
         val regex = Regex("^session-(\\d+)$")
-        val maxNum =
+        val usedNumbers =
             sessionsInState()
                 .mapNotNull {
                     regex
@@ -121,8 +121,9 @@ class AgentListScreenModel(
                         ?.groupValues
                         ?.get(1)
                         ?.toIntOrNull()
-                }.maxOrNull() ?: 0
-        return "session-${(maxNum + 1).toString().padStart(2, '0')}"
+                }.toSet()
+        val nextNum = generateSequence(1) { it + 1 }.first { it !in usedNumbers }
+        return "session-${nextNum.toString().padStart(2, '0')}"
     }
 
     private fun sessionsInState(): List<Session> = _state.value.sessions

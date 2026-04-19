@@ -117,6 +117,6 @@ class AgentListScreenModelTest {
 
             val result = model.suggestSessionName()
 
-            assertEquals("session-04", result)
+            assertEquals("session-02", result)
         }
 }
